@@ -12,8 +12,47 @@ import { Dimensions } from 'react-native';
 import TransactionItem from '@/components/transactions/TransactionItem';
 import BudgetProgressBar from '@/components/budgets/BudgetProgressBar';
 
+interface LineChartProps {
+  data: {
+    labels: string[];
+    datasets: Array<{
+      data: number[];
+      color?: (opacity: number) => string;
+      strokeWidth?: number;
+    }>;
+  };
+  width: number;
+  height: number;
+  chartConfig: {
+    backgroundColor: string;
+    backgroundGradientFrom: string;
+    backgroundGradientTo: string;
+    decimalPlaces: number;
+    color: (opacity: number) => string;
+    labelColor: (opacity: number) => string;
+    style?: {
+      borderRadius: number;
+    };
+    propsForDots?: {
+      r: string;
+      strokeWidth: string;
+      stroke: string;
+    };
+  };
+  bezier?: boolean;
+  style?: any;
+  // Responder props for native platforms
+  onStartShouldSetResponder?: () => boolean;
+  onMoveShouldSetResponder?: () => boolean;
+  onResponderGrant?: () => void;
+  onResponderMove?: () => void;
+  onResponderRelease?: () => void;
+  onResponderTerminate?: () => void;
+  onResponderTerminationRequest?: () => boolean;
+}
+
 // Wrapper component to filter out responder props on web platform
-const WebCompatibleLineChart = (props) => {
+const WebCompatibleLineChart = (props: LineChartProps) => {
   if (Platform.OS === 'web') {
     // Filter out responder-related props that cause warnings on web
     const {
