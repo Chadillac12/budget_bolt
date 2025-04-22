@@ -1,9 +1,9 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { Transaction } from '@/types/transaction';
+import { Transaction, TransactionSplit } from '@/types/transaction';
 import { formatCurrency, formatDate } from '@/utils/dateUtils';
 import { useAppContext } from '@/context/AppContext';
-import { ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Check } from 'lucide-react-native';
+import { ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Check, CheckCircle2 } from 'lucide-react-native';
 
 interface TransactionItemProps {
   transaction: Transaction;
@@ -14,10 +14,24 @@ export default function TransactionItem({ transaction, onPress }: TransactionIte
   const { state } = useAppContext();
   
   // Find category for this transaction
-  const category = state.categories.find(cat => cat.id === transaction.categoryId);
+  const category = transaction.isSplit
+    ? null // For split transactions, we'll show multiple categories
+    : state.categories.find(cat => cat.id === transaction.categoryId);
   
   // Find account for this transaction
   const account = state.accounts.find(acc => acc.id === transaction.accountId);
+  
+  // Get categories for split transaction
+  const splitCategories = transaction.isSplit && transaction.splits
+    ? transaction.splits.map(split => {
+        const cat = state.categories.find(c => c.id === split.categoryId);
+        return {
+          ...split,
+          name: cat?.name || 'Uncategorized',
+          color: cat?.color || '#E5E5EA'
+        };
+      })
+    : [];
   
   const getTransactionIcon = () => {
     switch (transaction.type) {
@@ -80,7 +94,11 @@ export default function TransactionItem({ transaction, onPress }: TransactionIte
               {formatDate(new Date(transaction.date))}
             </Text>
             
-            {category && (
+            {transaction.isSplit ? (
+              <View style={styles.splitIndicator}>
+                <Text style={styles.splitText}>Split</Text>
+              </View>
+            ) : category && (
               <View style={styles.categoryPill}>
                 <Text style={styles.categoryText} numberOfLines={1}>
                   {category.name}
@@ -103,7 +121,12 @@ export default function TransactionItem({ transaction, onPress }: TransactionIte
           {formatCurrency(Math.abs(transaction.amount), account?.currency || 'USD')}
         </Text>
         
-        {transaction.isCleared && (
+        {transaction.isReconciled ? (
+          <View style={styles.reconciledIndicator}>
+            <CheckCircle2 size={12} color="#5856D6" />
+            <Text style={styles.reconciledText}>Reconciled</Text>
+          </View>
+        ) : transaction.isCleared && (
           <View style={styles.clearedIndicator}>
             <Check size={12} color="#34C759" />
             <Text style={styles.clearedText}>Cleared</Text>
@@ -115,6 +138,18 @@ export default function TransactionItem({ transaction, onPress }: TransactionIte
 }
 
 const styles = StyleSheet.create({
+  splitIndicator: {
+    backgroundColor: '#5856D6',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginRight: 8,
+  },
+  splitText: {
+    fontSize: 12,
+    color: 'white',
+    fontWeight: '500',
+  },
   container: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -186,6 +221,15 @@ const styles = StyleSheet.create({
   clearedText: {
     fontSize: 12,
     color: '#34C759',
+    marginLeft: 2,
+  },
+  reconciledIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  reconciledText: {
+    fontSize: 12,
+    color: '#5856D6',
     marginLeft: 2,
   },
 });

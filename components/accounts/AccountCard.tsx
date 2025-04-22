@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { Account } from '@/types/account';
+import { Account, AccountClassification } from '@/types/account';
 import { formatCurrency } from '@/utils/dateUtils';
-import { Eye, EyeOff, CreditCard, DollarSign, Briefcase, Wallet } from 'lucide-react-native';
+import { Eye, EyeOff, CreditCard, DollarSign, Briefcase, Wallet, TrendingUp, TrendingDown } from 'lucide-react-native';
 import { useAppContext } from '@/context/AppContext';
+import AccountClassificationForm from './AccountClassificationForm';
 
 interface AccountCardProps {
   account: Account;
@@ -12,6 +13,7 @@ interface AccountCardProps {
 
 export default function AccountCard({ account, onPress }: AccountCardProps) {
   const { dispatch } = useAppContext();
+  const [showClassificationForm, setShowClassificationForm] = useState(false);
   
   const toggleVisibility = () => {
     dispatch({
@@ -40,20 +42,47 @@ export default function AccountCard({ account, onPress }: AccountCardProps) {
   };
 
   return (
-    <TouchableOpacity
-      style={[styles.card, { borderLeftColor: account.color || '#007AFF' }]}
-      onPress={() => onPress(account)}
-      activeOpacity={0.7}
-    >
+    <>
+      <AccountClassificationForm
+        account={account}
+        isVisible={showClassificationForm}
+        onClose={() => setShowClassificationForm(false)}
+      />
+      
+      <TouchableOpacity
+        style={[styles.card, { borderLeftColor: account.color || '#007AFF' }]}
+        onPress={() => onPress(account)}
+        activeOpacity={0.7}
+      >
       <View style={styles.leftContent}>
         <View style={styles.iconContainer}>
           {getAccountIcon()}
         </View>
         <View style={styles.accountInfo}>
           <Text style={styles.accountName}>{account.name}</Text>
-          <Text style={styles.accountType}>
-            {account.type.charAt(0).toUpperCase() + account.type.slice(1)}
-          </Text>
+          <View style={styles.accountMetaRow}>
+            <Text style={styles.accountType}>
+              {account.type.charAt(0).toUpperCase() + account.type.slice(1)}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowClassificationForm(true)}
+            >
+              <View style={[
+                styles.classificationBadge,
+                account.classification === 'asset' ? styles.assetBadge : styles.liabilityBadge,
+                account.excludeFromNetWorth && styles.excludedBadge
+              ]}>
+                {account.classification === 'asset' ? (
+                  <TrendingUp size={12} color="#fff" />
+                ) : (
+                  <TrendingDown size={12} color="#fff" />
+                )}
+                <Text style={styles.classificationText}>
+                  {account.excludeFromNetWorth ? 'Excluded' : account.classification.charAt(0).toUpperCase() + account.classification.slice(1)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
       
@@ -77,6 +106,7 @@ export default function AccountCard({ account, onPress }: AccountCardProps) {
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
+    </>
   );
 }
 
@@ -118,10 +148,37 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#000',
   },
+  accountMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
   accountType: {
     fontSize: 13,
     color: '#8E8E93',
-    marginTop: 2,
+    marginRight: 8,
+  },
+  classificationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  assetBadge: {
+    backgroundColor: '#34C759',
+  },
+  liabilityBadge: {
+    backgroundColor: '#FF3B30',
+  },
+  excludedBadge: {
+    backgroundColor: '#8E8E93',
+  },
+  classificationText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#fff',
+    marginLeft: 2,
   },
   rightContent: {
     alignItems: 'flex-end',

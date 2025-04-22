@@ -1,22 +1,39 @@
-export type TransactionType = 
+import { Payee } from './payee';
+
+export type TransactionType =
   | 'income'
   | 'expense'
   | 'transfer';
+
+/**
+ * Represents a single category allocation within a split transaction
+ */
+export interface TransactionSplit {
+  id: string;
+  categoryId: string;
+  amount: number;
+  description?: string;
+}
 
 export interface Transaction {
   id: string;
   accountId: string;
   date: Date;
-  payee: string;
+  payee: string; // Kept for backward compatibility
+  payeeId?: string; // Reference to a Payee object
   amount: number;
   type: TransactionType;
-  categoryId: string;
+  categoryId: string; // Main category for non-split transactions
   description: string;
   isReconciled: boolean;
   isCleared: boolean;
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
+  
+  // Split transaction properties
+  isSplit: boolean;
+  splits?: TransactionSplit[];
 }
 
 export interface RecurringTransaction extends Transaction {

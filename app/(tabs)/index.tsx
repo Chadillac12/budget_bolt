@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, RefreshControl, Platform } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, RefreshControl, Platform, TouchableOpacity } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
 import { useAppContext } from '@/context/AppContext';
 import AccountSummaryCard from '@/components/dashboard/AccountSummaryCard';
+import BudgetSummaryCard from '@/components/dashboard/BudgetSummaryCard';
 import { Account, AccountSummary } from '@/types/account';
 import { Transaction } from '@/types/transaction';
-import { Budget, BudgetSummary } from '@/types/budget';
+import { Budget, BudgetSummary, BudgetCategory, BudgetCategoryGroup } from '@/types/budget';
 import { formatCurrency, formatMonthYear } from '@/utils/dateUtils';
 import { LineChart } from 'react-native-chart-kit';
 import { Dimensions } from 'react-native';
@@ -74,6 +76,7 @@ const WebCompatibleLineChart = (props: LineChartProps) => {
 
 export default function DashboardScreen() {
   const { state } = useAppContext();
+  const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const [accountSummary, setAccountSummary] = useState<AccountSummary>({
     totalBalance: 0,
@@ -88,6 +91,7 @@ export default function DashboardScreen() {
     percentageSpent: 0,
   });
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
+  const [activeBudget, setActiveBudget] = useState<Budget | null>(null);
 
   // Calculate account summary
   useEffect(() => {
@@ -114,6 +118,9 @@ export default function DashboardScreen() {
         .filter(tx => tx.type === 'expense')
         .reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
         
+      // Note: Split transactions are already included in the calculations above
+      // since they have a type (income/expense) and a total amount
+        
       const netChange = totalIncome - totalExpenses;
       
       setAccountSummary({
@@ -125,29 +132,103 @@ export default function DashboardScreen() {
     }
   }, [state.accounts, state.transactions]);
 
-  // Calculate budget summary
+  // Calculate budget summary and find active budget
   useEffect(() => {
     if (state.budgets.length > 0) {
       // Find active budget
       const now = new Date();
-      const activeBudget = state.budgets.find(
+      const currentActiveBudget = state.budgets.find(
         budget => 
           new Date(budget.startDate) <= now && 
           new Date(budget.endDate) >= now && 
           budget.isActive
       );
       
-      if (activeBudget) {
-        const totalAllocated = activeBudget.categories.reduce(
-          (sum, cat) => sum + cat.allocated, 0
-        );
+      setActiveBudget(currentActiveBudget || null);
+      
+      if (currentActiveBudget) {
+        // Type guard to handle BudgetCategory vs BudgetCategoryGroup
+        const calculateCategoryValue = (
+          categories: (BudgetCategory | BudgetCategoryGroup)[],
+          property: 'allocated' | 'spent'
+        ): number => {
+          return categories.reduce((sum, cat) => {
+            if ('categoryId' in cat) {
+              // It's a BudgetCategory
+              return sum + cat[property];
+            } else {
+              // It's a BudgetCategoryGroup, recursively calculate
+              return sum + calculateCategoryValue(cat.children, property);
+            }
+          }, 0);
+        };
         
-        const totalSpent = activeBudget.categories.reduce(
-          (sum, cat) => sum + cat.spent, 0
-        );
+        // Update budget categories with transaction data
+        const updateBudgetWithTransactions = () => {
+          // Get transactions for the budget period
+          const budgetStart = new Date(currentActiveBudget.startDate);
+          const budgetEnd = new Date(currentActiveBudget.endDate);
+          
+          const budgetTransactions = state.transactions.filter(tx => {
+            const txDate = new Date(tx.date);
+            return txDate >= budgetStart && txDate <= budgetEnd && tx.type === 'expense';
+          });
+          
+          // Create a map to track spending by category
+          const categorySpending: Record<string, number> = {};
+          
+          // Process all transactions
+          budgetTransactions.forEach(tx => {
+            if (tx.isSplit && tx.splits) {
+              // Handle split transactions
+              tx.splits.forEach(split => {
+                if (!categorySpending[split.categoryId]) {
+                  categorySpending[split.categoryId] = 0;
+                }
+                categorySpending[split.categoryId] += split.amount;
+              });
+            } else {
+              // Handle regular transactions
+              if (!categorySpending[tx.categoryId]) {
+                categorySpending[tx.categoryId] = 0;
+              }
+              categorySpending[tx.categoryId] += tx.amount;
+            }
+          });
+          
+          // Update budget categories with actual spending
+          const updateCategorySpending = (
+            categories: (BudgetCategory | BudgetCategoryGroup)[]
+          ): (BudgetCategory | BudgetCategoryGroup)[] => {
+            return categories.map(cat => {
+              if ('categoryId' in cat) {
+                // It's a BudgetCategory
+                const spent = categorySpending[cat.categoryId] || 0;
+                return {
+                  ...cat,
+                  spent,
+                  remaining: cat.allocated - spent
+                };
+              } else {
+                // It's a BudgetCategoryGroup, recursively update
+                return {
+                  ...cat,
+                  children: updateCategorySpending(cat.children)
+                };
+              }
+            });
+          };
+          
+          // Update the budget categories
+          currentActiveBudget.categories = updateCategorySpending(currentActiveBudget.categories);
+        };
         
+        // Update budget with transaction data
+        updateBudgetWithTransactions();
+        
+        const totalAllocated = calculateCategoryValue(currentActiveBudget.categories, 'allocated');
+        const totalSpent = calculateCategoryValue(currentActiveBudget.categories, 'spent');
         const totalRemaining = totalAllocated - totalSpent;
-        
         const percentageSpent = totalAllocated > 0 
           ? (totalSpent / totalAllocated) * 100 
           : 0;
@@ -193,6 +274,7 @@ export default function DashboardScreen() {
       },
     ],
   };
+
 
   return (
     <View style={styles.container}>
@@ -241,56 +323,70 @@ export default function DashboardScreen() {
           />
         </View>
         
-        {/* Budget Overview */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Budget Overview</Text>
-            <Text style={styles.viewAll}>View All</Text>
-          </View>
-          
-          <View style={styles.budgetSummaryContainer}>
-            <View style={styles.budgetSummaryItem}>
-              <Text style={styles.budgetLabel}>Allocated</Text>
-              <Text style={styles.budgetValue}>
-                {formatCurrency(budgetSummary.totalAllocated)}
-              </Text>
+        {/* Budget Summary Card */}
+        <BudgetSummaryCard
+          summary={budgetSummary}
+          hasActiveBudget={activeBudget !== null}
+        />
+        
+        {/* Budget Categories */}
+        {activeBudget && (
+          <View
+            style={styles.sectionContainer}
+            accessible={true}
+            accessibilityLabel="Budget Categories Section"
+          >
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Budget Categories</Text>
+              <TouchableOpacity
+                onPress={() => router.push("/(tabs)")}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel="View all budget categories"
+              >
+                <Text style={styles.viewAll}>View All</Text>
+              </TouchableOpacity>
             </View>
             
-            <View style={styles.budgetSummaryItem}>
-              <Text style={styles.budgetLabel}>Spent</Text>
-              <Text style={styles.budgetValue}>
-                {formatCurrency(budgetSummary.totalSpent)}
-              </Text>
+            {/* Budget status summary */}
+            <View style={styles.budgetStatusContainer}>
+              <View style={[styles.statusIndicator, styles.goodStatusIndicator]}>
+                <Text style={styles.statusText}>Under Budget</Text>
+              </View>
+              <View style={[styles.statusIndicator, styles.warningStatusIndicator]}>
+                <Text style={styles.statusText}>Approaching Limit</Text>
+              </View>
+              <View style={[styles.statusIndicator, styles.badStatusIndicator]}>
+                <Text style={styles.statusText}>Over Budget</Text>
+              </View>
             </View>
             
-            <View style={styles.budgetSummaryItem}>
-              <Text style={styles.budgetLabel}>Remaining</Text>
-              <Text style={[
-                styles.budgetValue,
-                budgetSummary.totalRemaining < 0 ? styles.negativeValue : styles.positiveValue
-              ]}>
-                {formatCurrency(budgetSummary.totalRemaining)}
-              </Text>
-            </View>
+            {/* Top 3 categories only for dashboard */}
+            {activeBudget.categories.slice(0, 3).map((category, index) => (
+              <BudgetProgressBar
+                key={index}
+                item={category}
+                categoryColor="#5856D6"
+                isGroupLevel={'children' in category}
+              />
+            ))}
+            
+            {/* View more button if there are more than 3 categories */}
+            {activeBudget.categories.length > 3 && (
+              <TouchableOpacity
+                style={styles.viewMoreButton}
+                onPress={() => router.push("/(tabs)")}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel={`View ${activeBudget.categories.length - 3} more budget categories`}
+              >
+                <Text style={styles.viewMoreText}>
+                  View {activeBudget.categories.length - 3} more categories
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
-          
-          {/* Example Budget Categories */}
-          <BudgetProgressBar
-            allocated={1200}
-            spent={800}
-            remaining={400}
-            categoryName="Housing"
-            categoryColor="#5856D6"
-          />
-          
-          <BudgetProgressBar
-            allocated={500}
-            spent={490}
-            remaining={10}
-            categoryName="Groceries"
-            categoryColor="#FF9500"
-          />
-        </View>
+        )}
         
         {/* Recent Transactions */}
         <View style={styles.sectionContainer}>
@@ -377,25 +473,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#007AFF',
   },
-  budgetSummaryContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  budgetSummaryItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  budgetLabel: {
-    fontSize: 14,
-    color: '#8E8E93',
-    marginBottom: 4,
-  },
-  budgetValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-  },
   positiveValue: {
     color: '#34C759',
   },
@@ -409,5 +486,51 @@ const styles = StyleSheet.create({
   },
   bottomPadding: {
     height: 40,
+  },
+  budgetStatusContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  statusIndicator: {
+    flex: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 4,
+    marginHorizontal: 2,
+    alignItems: 'center',
+  },
+  goodStatusIndicator: {
+    backgroundColor: 'rgba(52, 199, 89, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(52, 199, 89, 0.3)',
+  },
+  warningStatusIndicator: {
+    backgroundColor: 'rgba(255, 149, 0, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 149, 0, 0.3)',
+  },
+  badStatusIndicator: {
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 59, 48, 0.3)',
+  },
+  statusText: {
+    fontSize: 10,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  viewMoreButton: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    marginTop: 8,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 8,
+  },
+  viewMoreText: {
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '500',
   },
 });

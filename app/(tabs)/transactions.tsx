@@ -1,28 +1,33 @@
 import React, { useState, useCallback } from 'react';
-import { 
-  StyleSheet, 
-  View, 
-  Text, 
-  FlatList, 
-  TouchableOpacity, 
+import {
+  StyleSheet,
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
   TextInput,
-  RefreshControl
+  RefreshControl,
+  Modal
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useAppContext } from '@/context/AppContext';
 import TransactionItem from '@/components/transactions/TransactionItem';
+import TransactionForm from '@/components/transactions/TransactionForm';
 import { Transaction, TransactionType } from '@/types/transaction';
 import { formatMonthYear } from '@/utils/dateUtils';
-import { Plus, Search, Filter, Calendar, X } from 'lucide-react-native';
+import { Plus, Search, Filter, Calendar, X, Wand2 } from 'lucide-react-native';
+import { applyRules } from '@/utils/ruleUtils';
 import { debounce } from 'lodash';
 
 export default function TransactionsScreen() {
-  const { state } = useAppContext();
+  const { state, dispatch } = useAppContext();
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [activeFilter, setActiveFilter] = useState<TransactionType | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [showTransactionForm, setShowTransactionForm] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>(undefined);
 
   // Filter transactions based on search, type, and date
   const filteredTransactions = React.useMemo(() => {
@@ -66,8 +71,35 @@ export default function TransactionsScreen() {
   };
 
   const handleTransactionPress = (transaction: Transaction) => {
-    // In a real app, navigate to transaction details
-    console.log('Transaction pressed:', transaction.id);
+    setEditingTransaction(transaction);
+    setShowTransactionForm(true);
+  };
+  
+  const handleAddTransaction = () => {
+    setEditingTransaction(undefined);
+    setShowTransactionForm(true);
+  };
+  
+  const handleSaveTransaction = (transaction: Transaction) => {
+    if (editingTransaction) {
+      // Update existing transaction
+      dispatch({
+        type: 'UPDATE_TRANSACTION',
+        payload: transaction
+      });
+    } else {
+      // Add new transaction
+      dispatch({
+        type: 'ADD_TRANSACTION',
+        payload: transaction
+      });
+    }
+    
+    setShowTransactionForm(false);
+  };
+  
+  const handleCancelTransaction = () => {
+    setShowTransactionForm(false);
   };
 
   const navigateToPreviousMonth = () => {
@@ -102,6 +134,44 @@ export default function TransactionsScreen() {
     setShowSearch(!showSearch);
     if (showSearch) {
       setSearchQuery('');
+    }
+  };
+
+  // Apply categorization rules to all transactions
+  const handleApplyRules = () => {
+    // Get all transactions for the current month
+    let transactions = [...filteredTransactions];
+    
+    // Skip transactions that already have categories
+    const uncategorizedTransactions = transactions.filter(tx => !tx.categoryId);
+    
+    if (uncategorizedTransactions.length === 0) {
+      alert('All transactions already have categories!');
+      return;
+    }
+    
+    // Apply rules to each transaction
+    let categorizedCount = 0;
+    uncategorizedTransactions.forEach(transaction => {
+      const updatedTransaction = applyRules(state.rules, transaction);
+      
+      // If the transaction was categorized (rules matched)
+      if (updatedTransaction.categoryId && updatedTransaction.categoryId !== transaction.categoryId) {
+        categorizedCount++;
+        
+        // Update the transaction in the store
+        dispatch({
+          type: 'UPDATE_TRANSACTION',
+          payload: updatedTransaction
+        });
+      }
+    });
+    
+    // Show results
+    if (categorizedCount > 0) {
+      alert(`Successfully categorized ${categorizedCount} transactions!`);
+    } else {
+      alert('No transactions were categorized. Try creating more rules!');
     }
   };
 
@@ -208,6 +278,13 @@ export default function TransactionsScreen() {
             </TouchableOpacity>
           )}
           
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={handleApplyRules}
+          >
+            <Wand2 size={18} color="#007AFF" />
+          </TouchableOpacity>
+          
           <TouchableOpacity style={styles.iconButton}>
             <Filter size={18} color="#007AFF" />
           </TouchableOpacity>
@@ -244,9 +321,25 @@ export default function TransactionsScreen() {
       />
       
       {/* Add Transaction Button */}
-      <TouchableOpacity style={styles.addButton}>
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={handleAddTransaction}
+      >
         <Plus size={24} color="white" />
       </TouchableOpacity>
+      
+      {/* Transaction Form Modal */}
+      <Modal
+        visible={showTransactionForm}
+        animationType="slide"
+        transparent={false}
+      >
+        <TransactionForm
+          transaction={editingTransaction}
+          onSave={handleSaveTransaction}
+          onCancel={handleCancelTransaction}
+        />
+      </Modal>
     </View>
   );
 }

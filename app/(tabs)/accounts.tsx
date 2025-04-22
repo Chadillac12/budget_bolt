@@ -3,24 +3,32 @@ import { StyleSheet, View, Text, FlatList, TouchableOpacity, RefreshControl, Scr
 import { StatusBar } from 'expo-status-bar';
 import { useAppContext } from '@/context/AppContext';
 import AccountCard from '@/components/accounts/AccountCard';
-import { Account, AccountType } from '@/types/account';
+import { Account, AccountType, AccountClassification, DEFAULT_ACCOUNT_CLASSIFICATIONS } from '@/types/account';
 import { formatCurrency } from '@/utils/dateUtils';
-import { Plus, Filter } from 'lucide-react-native';
+import { Plus, Filter, TrendingUp, TrendingDown } from 'lucide-react-native';
 
 export default function AccountsScreen() {
   const { state } = useAppContext();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [showArchivedAccounts, setShowArchivedAccounts] = useState(false);
+  const [classificationFilter, setClassificationFilter] = useState<AccountClassification | null>(null);
 
   // Calculate totals
-  const { totalBalance, visibleAccounts } = React.useMemo(() => {
+  const { totalBalance, visibleAccounts, assetAccounts, liabilityAccounts } = React.useMemo(() => {
     // Filter accounts based on selection
     let filteredAccounts = state.accounts;
     
-    if (selectedFilter) {
+    if (selectedFilter && selectedFilter !== 'all') {
       filteredAccounts = filteredAccounts.filter(
         account => account.type === selectedFilter
+      );
+    }
+    
+    // Filter by classification if selected
+    if (classificationFilter) {
+      filteredAccounts = filteredAccounts.filter(
+        account => account.classification === classificationFilter
       );
     }
     
@@ -29,17 +37,22 @@ export default function AccountsScreen() {
       account => showArchivedAccounts ? account.isArchived : !account.isArchived
     );
     
+    // Separate assets and liabilities
+    const assets = filteredAccounts.filter(account => account.classification === 'asset');
+    const liabilities = filteredAccounts.filter(account => account.classification === 'liability');
+    
     // Calculate total balance of visible accounts
-    const total = filteredAccounts.reduce(
-      (sum, account) => sum + account.balance, 
-      0
-    );
+    const assetsTotal = assets.reduce((sum, account) => sum + account.balance, 0);
+    const liabilitiesTotal = liabilities.reduce((sum, account) => sum + account.balance, 0);
+    const netWorth = assetsTotal - liabilitiesTotal;
     
     return {
-      totalBalance: total,
+      totalBalance: netWorth,
       visibleAccounts: filteredAccounts,
+      assetAccounts: assets,
+      liabilityAccounts: liabilities,
     };
-  }, [state.accounts, selectedFilter, showArchivedAccounts]);
+  }, [state.accounts, selectedFilter, classificationFilter, showArchivedAccounts]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -53,6 +66,15 @@ export default function AccountsScreen() {
     // In a real app, this would navigate to the account details screen
     console.log('Account pressed:', account.id);
   };
+  
+  // Handle new account creation with default classification
+  const handleAddAccount = () => {
+    // In a real app, this would open a form to create a new account
+    console.log('Add account pressed');
+    
+    // For now, just log that we would add an account with default classification
+    console.log('New accounts would have default classification based on type');
+  };
 
   // Get unique account types for filters
   const accountTypes = React.useMemo(() => {
@@ -60,6 +82,15 @@ export default function AccountsScreen() {
     state.accounts.forEach(account => types.add(account.type));
     return Array.from(types);
   }, [state.accounts]);
+  
+  // Toggle classification filter
+  const toggleClassificationFilter = (classification: AccountClassification) => {
+    if (classificationFilter === classification) {
+      setClassificationFilter(null);
+    } else {
+      setClassificationFilter(classification);
+    }
+  };
 
   const renderFilterChip = (type: string, label: string) => (
     <TouchableOpacity
@@ -87,14 +118,78 @@ export default function AccountsScreen() {
       {/* Summary Header */}
       <View style={styles.summaryContainer}>
         <Text style={styles.summaryTitle}>
-          {showArchivedAccounts ? 'Archived Accounts' : 'Total Balance'}
+          {showArchivedAccounts ? 'Archived Accounts' : 'Net Worth'}
         </Text>
-        <Text style={styles.summaryAmount}>
+        <Text style={[
+          styles.summaryAmount,
+          totalBalance < 0 ? styles.negativeBalance : null
+        ]}>
           {formatCurrency(totalBalance)}
         </Text>
+        
+        <View style={styles.balanceBreakdown}>
+          <View style={styles.balanceItem}>
+            <View style={styles.balanceIconContainer}>
+              <TrendingUp size={14} color="#34C759" />
+            </View>
+            <Text style={styles.balanceLabel}>Assets</Text>
+            <Text style={styles.balanceValue}>
+              {formatCurrency(assetAccounts.reduce((sum, a) => sum + a.balance, 0))}
+            </Text>
+          </View>
+          
+          <View style={styles.balanceDivider} />
+          
+          <View style={styles.balanceItem}>
+            <View style={styles.balanceIconContainer}>
+              <TrendingDown size={14} color="#FF3B30" />
+            </View>
+            <Text style={styles.balanceLabel}>Liabilities</Text>
+            <Text style={styles.balanceValue}>
+              {formatCurrency(liabilityAccounts.reduce((sum, a) => sum + a.balance, 0))}
+            </Text>
+          </View>
+        </View>
+        
         <Text style={styles.summarySubtitle}>
           {visibleAccounts.length} {visibleAccounts.length === 1 ? 'account' : 'accounts'}
         </Text>
+      </View>
+      
+      {/* Classification Filter */}
+      <View style={styles.classificationFilters}>
+        <TouchableOpacity
+          style={[
+            styles.classificationButton,
+            classificationFilter === 'asset' && styles.activeClassificationButton
+          ]}
+          onPress={() => toggleClassificationFilter('asset')}
+        >
+          <TrendingUp size={16} color={classificationFilter === 'asset' ? '#fff' : '#34C759'} />
+          <Text style={[
+            styles.classificationButtonText,
+            classificationFilter === 'asset' && styles.activeClassificationText
+          ]}>
+            Assets
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[
+            styles.classificationButton,
+            classificationFilter === 'liability' && styles.activeClassificationButton,
+            styles.liabilityButton
+          ]}
+          onPress={() => toggleClassificationFilter('liability')}
+        >
+          <TrendingDown size={16} color={classificationFilter === 'liability' ? '#fff' : '#FF3B30'} />
+          <Text style={[
+            styles.classificationButtonText,
+            classificationFilter === 'liability' && styles.activeClassificationText
+          ]}>
+            Liabilities
+          </Text>
+        </TouchableOpacity>
       </View>
       
       {/* Filter Row */}
@@ -103,13 +198,13 @@ export default function AccountsScreen() {
           {renderFilterChip('all', 'All')}
           {accountTypes.map((type) => (
             renderFilterChip(
-              type, 
+              type,
               type.charAt(0).toUpperCase() + type.slice(1)
             )
           ))}
         </ScrollView>
         
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.filterButton}
           onPress={() => setShowArchivedAccounts(!showArchivedAccounts)}
         >
@@ -147,7 +242,10 @@ export default function AccountsScreen() {
       />
       
       {/* Add Account Button */}
-      <TouchableOpacity style={styles.addButton}>
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={handleAddAccount}
+      >
         <Plus size={24} color="white" />
       </TouchableOpacity>
     </View>
@@ -176,11 +274,82 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '700',
     color: '#000',
+    marginBottom: 12,
+  },
+  negativeBalance: {
+    color: '#FF3B30',
+  },
+  balanceBreakdown: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    width: '80%',
+  },
+  balanceItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  balanceIconContainer: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#F2F2F7',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 4,
+  },
+  balanceLabel: {
+    fontSize: 12,
+    color: '#8E8E93',
+    marginBottom: 2,
+  },
+  balanceValue: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  balanceDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: '#E5E5EA',
+    marginHorizontal: 16,
   },
   summarySubtitle: {
     fontSize: 14,
     color: '#8E8E93',
+  },
+  classificationFilters: {
+    flexDirection: 'row',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+  },
+  classificationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F2F2F7',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#34C759',
+  },
+  liabilityButton: {
+    borderColor: '#FF3B30',
+  },
+  activeClassificationButton: {
+    backgroundColor: '#34C759',
+  },
+  activeClassificationText: {
+    color: 'white',
+  },
+  classificationButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 4,
   },
   filtersContainer: {
     flexDirection: 'row',
