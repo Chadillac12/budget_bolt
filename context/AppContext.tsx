@@ -44,7 +44,22 @@ const initialState: AppState = {
   accounts: [],
   transactions: [],
   categories: [],
-  budgets: [],
+  budgets: [
+    {
+      id: 'default-budget',
+      name: 'Default Budget',
+      startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+      categories: [],
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      rolloverSettings: {
+        enabled: false,
+        rolloverType: 'none'
+      }
+    }
+  ],
   rules: [], // Initialize empty rules array
   payees: [], // Initialize empty payees array
   payeeCategories: [], // Initialize empty payee categories array
@@ -162,10 +177,13 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       };
       
     case 'ADD_ACCOUNT':
-      return {
+      console.log('ADD_ACCOUNT action received in reducer with payload:', action.payload);
+      const newState = {
         ...state,
         accounts: [...state.accounts, action.payload],
       };
+      console.log('New accounts state after ADD_ACCOUNT:', newState.accounts);
+      return newState;
       
     case 'UPDATE_ACCOUNT':
       return {
@@ -732,5 +750,16 @@ export const useAppContext = () => {
   if (context === undefined) {
     throw new Error('useAppContext must be used within an AppProvider');
   }
-  return context;
+  
+  // Add a wrapper around dispatch to log actions
+  const originalDispatch = context.dispatch;
+  const loggingDispatch: typeof originalDispatch = (action) => {
+    console.log('Dispatching action:', action.type);
+    return originalDispatch(action);
+  };
+  
+  return {
+    state: context.state,
+    dispatch: loggingDispatch
+  };
 };

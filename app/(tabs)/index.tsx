@@ -17,11 +17,11 @@ import BudgetProgressBar from '@/components/budgets/BudgetProgressBar';
 interface LineChartProps {
   data: {
     labels: string[];
-    datasets: Array<{
+    datasets: {
       data: number[];
       color?: (opacity: number) => string;
       strokeWidth?: number;
-    }>;
+    }[];
   };
   width: number;
   height: number;

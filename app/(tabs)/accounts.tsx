@@ -6,6 +6,7 @@ import AccountCard from '@/components/accounts/AccountCard';
 import { Account, AccountType, AccountClassification, DEFAULT_ACCOUNT_CLASSIFICATIONS } from '@/types/account';
 import { formatCurrency } from '@/utils/dateUtils';
 import { Plus, Filter, TrendingUp, TrendingDown } from 'lucide-react-native';
+import AccountForm from '@/components/accounts/AccountForm';
 
 export default function AccountsScreen() {
   const { state } = useAppContext();
@@ -13,6 +14,8 @@ export default function AccountsScreen() {
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [showArchivedAccounts, setShowArchivedAccounts] = useState(false);
   const [classificationFilter, setClassificationFilter] = useState<AccountClassification | null>(null);
+  const [showAccountForm, setShowAccountForm] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
 
   // Calculate totals
   const { totalBalance, visibleAccounts, assetAccounts, liabilityAccounts } = React.useMemo(() => {
@@ -63,17 +66,24 @@ export default function AccountsScreen() {
   };
 
   const handleAccountPress = (account: Account) => {
-    // In a real app, this would navigate to the account details screen
-    console.log('Account pressed:', account.id);
+    // Open the account form with the selected account for editing
+    setSelectedAccount(account);
+    setShowAccountForm(true);
   };
   
-  // Handle new account creation with default classification
+  // Handle new account creation
   const handleAddAccount = () => {
-    // In a real app, this would open a form to create a new account
-    console.log('Add account pressed');
-    
-    // For now, just log that we would add an account with default classification
-    console.log('New accounts would have default classification based on type');
+    console.log('+ button clicked, opening account form');
+    // Reset selected account and open the form
+    setSelectedAccount(null);
+    setShowAccountForm(true);
+    console.log('showAccountForm set to:', true);
+  };
+  
+  // Handle closing the account form
+  const handleCloseAccountForm = () => {
+    setShowAccountForm(false);
+    setSelectedAccount(null);
   };
 
   // Get unique account types for filters
@@ -248,6 +258,13 @@ export default function AccountsScreen() {
       >
         <Plus size={24} color="white" />
       </TouchableOpacity>
+      
+      {/* Account Form Modal */}
+      <AccountForm
+        isVisible={showAccountForm}
+        onClose={handleCloseAccountForm}
+        initialAccount={selectedAccount || undefined}
+      />
     </View>
   );
 }

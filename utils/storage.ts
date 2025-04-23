@@ -16,8 +16,10 @@ const KEYS = {
 // Basic storage operations
 export const storeData = async (key: string, value: any): Promise<void> => {
   try {
+    console.log(`Storing data for key: ${key}`, value);
     const jsonValue = JSON.stringify(value);
     await AsyncStorage.setItem(key, jsonValue);
+    console.log(`Successfully stored data for key: ${key}`);
   } catch (error) {
     console.error('Error storing data:', error);
     throw error;
@@ -26,8 +28,11 @@ export const storeData = async (key: string, value: any): Promise<void> => {
 
 export const getData = async (key: string): Promise<any> => {
   try {
+    console.log(`Retrieving data for key: ${key}`);
     const jsonValue = await AsyncStorage.getItem(key);
-    return jsonValue != null ? JSON.parse(jsonValue) : null;
+    const parsedValue = jsonValue != null ? JSON.parse(jsonValue) : null;
+    console.log(`Retrieved data for key: ${key}`, parsedValue);
+    return parsedValue;
   } catch (error) {
     console.error('Error retrieving data:', error);
     throw error;

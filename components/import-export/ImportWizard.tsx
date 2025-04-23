@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, FlatList, Alert, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, FlatList, Alert, ActivityIndicator, Platform } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
-import { importFromCSV } from '../../utils/csvUtils';
+import { importFromCSV, readFileAsString } from '../../utils/csvUtils';
 import { importFromOFX, isOFXFile, convertOFXToTransactions, detectDuplicateOFXTransactions } from '../../utils/ofxUtils';
 import { useAppContext } from '@/context/AppContext';
 import { BankConnection } from '@/types/bankConnection';
@@ -31,6 +31,7 @@ const ImportWizard = () => {
   const [importSource, setImportSource] = useState<ImportSource | null>(null);
   const [fileData, setFileData] = useState<ImportData | null>(null);
   const [fileFormat, setFileFormat] = useState<ImportFileFormat>('csv');
+  const [currentFileUri, setCurrentFileUri] = useState<string | null>(null);
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
   const [bankConnections, setBankConnections] = useState<BankConnection[]>([]);
   const [selectedConnection, setSelectedConnection] = useState<BankConnection | null>(null);
@@ -85,27 +86,44 @@ const ImportWizard = () => {
     
     try {
       setLoading(true);
+      console.log('[DEBUG] Import: File selected successfully', { fileName: result.name, fileSize: result.size });
       
       // Read file content to detect format
       const fileUri = result.uri;
-      const fileContent = await FileSystem.readAsStringAsync(fileUri);
+      setCurrentFileUri(fileUri); // Store the file URI for later use
+      console.log('[DEBUG] Import: About to read file content from URI', { fileUri });
       
-      let data: ImportData;
-      
-      // Detect if it's an OFX/QFX file
-      if (isOFXFile(fileContent)) {
-        data = await importFromOFX(fileUri);
-        setFileFormat('ofx');
-      } else {
-        // Assume CSV if not OFX/QFX
-        data = await importFromCSV(fileUri);
-        setFileFormat('csv');
+      try {
+        console.log('[DEBUG] Import: Platform is', Platform.OS);
+        // Use the cross-platform file reading utility
+        const fileContent = await readFileAsString(fileUri);
+        console.log('[DEBUG] Import: File content read successfully', { contentLength: fileContent.length });
+        
+        let importData: ImportData;
+        
+        // Detect if it's an OFX/QFX file
+        if (isOFXFile(fileContent)) {
+          console.log('[DEBUG] Import: OFX file detected');
+          importData = await importFromOFX(fileUri);
+          setFileFormat('ofx');
+        } else {
+          console.log('[DEBUG] Import: CSV file detected');
+          // Assume CSV if not OFX/QFX
+          importData = await importFromCSV(fileUri, undefined, true); // true for preview only
+          setFileFormat('csv');
+        }
+        
+        setFileData(importData);
+      } catch (readError) {
+        console.error('[DEBUG] Import: Error reading file content', readError);
+        Alert.alert('Import Error', 'Failed to read file. Please check the file format and try again.');
+        throw readError;
       }
       
-      setFileData(data);
-      setStep(3); // Go to column mapping step
+      // Set step to 3 (column mapping for CSV, confirmation for OFX/QFX)
+      setStep(3);
     } catch (error) {
-      console.error('Import error:', error);
+      console.error('[DEBUG] Import: Import error:', error);
       Alert.alert('Import Error', 'Failed to import file. Please check the file format.');
     } finally {
       setLoading(false);
@@ -146,6 +164,12 @@ const ImportWizard = () => {
       setLoading(true);
       
       let transactionObjects: Transaction[] = [];
+      
+      // For CSV files, reload the entire file with column mapping to get all rows
+      if (fileFormat === 'csv' && currentFileUri) {
+        const fullData = await importFromCSV(currentFileUri, columnMapping, false); // false for all rows
+        fileData.preview = fullData.preview;
+      }
       
       if (fileFormat === 'ofx' || fileFormat === 'qfx') {
         // For OFX/QFX files, we already have structured data
@@ -199,9 +223,16 @@ const ImportWizard = () => {
         // For CSV files, process the mapped data
         const transactions = fileData.preview.map(item => {
           const tx: Record<string, any> = {};
+          
+          // Process the column mapping
           Object.entries(columnMapping).forEach(([csvHeader, appField]) => {
-            tx[appField] = item[csvHeader];
+            // Get the value from the CSV row using the header
+            const value = item[csvHeader];
+            if (value !== undefined) {
+              tx[appField] = value;
+            }
           });
+          
           return tx;
         });
         
@@ -209,20 +240,56 @@ const ImportWizard = () => {
         transactionObjects = transactions.map(item => {
           // Determine transaction type
           let transactionType: TransactionType = 'expense';
-          if (parseFloat(item.amount) > 0) {
-            transactionType = 'income';
-          } else if (item.type === 'transfer') {
-            transactionType = 'transfer';
+          let amount = 0;
+          
+          // Parse the amount from the mapped data
+          if (item.amount) {
+            // Remove any non-numeric characters except minus sign and decimal point
+            const cleanAmount = item.amount.toString().replace(/[^\d.-]/g, '');
+            amount = parseFloat(cleanAmount);
+            
+            if (!isNaN(amount)) {
+              if (amount > 0) {
+                transactionType = 'income';
+              } else if (item.type === 'transfer') {
+                transactionType = 'transfer';
+              }
+            }
+          }
+          
+          // Find an account to use (use first account if not specified)
+          const accountId = item.accountId || (state.accounts.length > 0 ? state.accounts[0].id : '');
+          
+          // Create a date object from the date string
+          let transactionDate = new Date();
+          if (item.date) {
+            try {
+              transactionDate = new Date(item.date);
+              // If date is invalid, try different formats
+              if (isNaN(transactionDate.getTime())) {
+                // Try different date formats
+                const dateParts = item.date.split(/[-/]/);
+                if (dateParts.length === 3) {
+                  transactionDate = new Date(
+                    parseInt(dateParts[2]),
+                    parseInt(dateParts[1]) - 1,
+                    parseInt(dateParts[0])
+                  );
+                }
+              }
+            } catch (err) {
+              console.error('Error parsing date:', err);
+            }
           }
           
           return {
             id: item.id || `import-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-            accountId: item.accountId || '',
-            date: new Date(item.date),
+            accountId: accountId,
+            date: transactionDate,
             payee: item.payee || '',
-            amount: parseFloat(item.amount) || 0,
+            amount: amount,
             type: transactionType,
-            categoryId: item.categoryId || '',
+            categoryId: item.categoryId || (item.category ? item.category : ''),
             description: item.description || '',
             isReconciled: false,
             isCleared: true,

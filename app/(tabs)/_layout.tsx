@@ -15,7 +15,8 @@ import {
   BarChart,
   FileText,
   Link,
-  Cloud
+  Cloud,
+  Download
 } from 'lucide-react-native';
 
 // Enable LayoutAnimation for Android
@@ -228,6 +229,22 @@ export default function TabLayout() {
           ),
           tabBarLabel: 'Payees',
           headerTitle: 'Payee Management',
+          headerShown: true,
+        }}
+        listeners={{
+          tabPress: () => configureNextAnimation(),
+        }}
+      />
+      
+      <Tabs.Screen
+        name="import"
+        options={{
+          title: 'Import',
+          tabBarIcon: ({ color, size }) => (
+            <Download size={size} color={color} />
+          ),
+          tabBarLabel: 'Import',
+          headerTitle: 'Import Transactions',
           headerShown: true,
         }}
         listeners={{

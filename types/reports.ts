@@ -177,7 +177,7 @@ export interface ReportSummary {
   maxAmount?: number;
   startDate: Date;
   endDate: Date;
-  topItems?: Array<{name: string, amount: number, percentage: number}>;
+  topItems?: {name: string, amount: number, percentage: number}[];
 }
 
 /**

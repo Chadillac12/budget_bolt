@@ -2,7 +2,7 @@
 
 This document outlines the prioritized action items for completing the Budget Bolt application according to the original requirements. It provides a roadmap for future development efforts, organized by priority and estimated effort.
 
-## High Priority Items
+## High Priority Itemsw
 
 These items should be addressed first to complete the core functionality of the application.
 

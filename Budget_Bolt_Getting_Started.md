@@ -14,7 +14,7 @@ Before you begin, ensure you have the following installed:
 
 ## Setup Instructions
 
-### 1. Clone the Repository
+### 1. Clone the Repositoryww
 
 ```bash
 # Clone the repository

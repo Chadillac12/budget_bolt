@@ -25,41 +25,59 @@ const ColumnMappingStep: React.FC<ColumnMappingStepProps> = ({
     onMappingComplete(mapping);
   };
 
+  // Find which app field each header is mapped to
+  const getFieldForHeader = (header: string) => {
+    return mapping[header] || '';
+  };
+
+  // Check if a header is already mapped
+  const isHeaderMapped = (header: string) => {
+    return !!mapping[header];
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Map CSV Columns</Text>
+      <Text style={styles.instructions}>
+        Please map each CSV column to the corresponding field in the application
+      </Text>
       
-      <View style={styles.mappingContainer}>
-        <View>
-          <Text style={styles.subtitle}>CSV Headers:</Text>
-          <FlatList
-            data={headers}
-            renderItem={({ item }) => (
-              <Text style={styles.headerItem}>{item}</Text>
-            )}
-            keyExtractor={(item) => item}
-          />
-        </View>
-
-        <View>
-          <Text style={styles.subtitle}>App Fields:</Text>
-          <FlatList
-            data={appFields}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.fieldItem}
-                onPress={() => handleMapField(headers[0], item)}
-              >
-                <Text>{item}</Text>
-                {mapping[headers[0]] === item && (
-                  <Text style={styles.mappedText}>✓</Text>
-                )}
-              </TouchableOpacity>
-            )}
-            keyExtractor={(item) => item}
-          />
-        </View>
-      </View>
+      <FlatList
+        data={headers}
+        renderItem={({ item: header }) => (
+          <View style={styles.mappingRow}>
+            <View style={styles.headerContainer}>
+              <Text style={styles.headerItem}>{header}</Text>
+            </View>
+            <View style={styles.fieldSelectorContainer}>
+              <Text style={styles.arrowText}>→</Text>
+              <View style={styles.fieldSelector}>
+                <FlatList
+                  horizontal
+                  data={appFields}
+                  renderItem={({ item: field }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.fieldItem,
+                        getFieldForHeader(header) === field && styles.selectedField
+                      ]}
+                      onPress={() => handleMapField(header, field)}
+                    >
+                      <Text style={getFieldForHeader(header) === field ? styles.selectedFieldText : styles.fieldText}>
+                        {field}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                  keyExtractor={(item) => item}
+                  showsHorizontalScrollIndicator={false}
+                />
+              </View>
+            </View>
+          </View>
+        )}
+        keyExtractor={(item) => item}
+        style={styles.mappingList}
+      />
 
       <View style={styles.buttonContainer}>
         {onCancel && (
@@ -89,33 +107,62 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
+    marginBottom: 8
+  },
+  instructions: {
+    fontSize: 14,
+    color: '#666',
     marginBottom: 20
   },
-  mappingContainer: {
+  mappingList: {
+    flex: 1,
+  },
+  mappingRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20
+    marginBottom: 15,
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
-  subtitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 10
+  headerContainer: {
+    flex: 0.4,
   },
   headerItem: {
-    padding: 10,
-    backgroundColor: '#f0f0f0',
-    marginBottom: 5
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333',
+  },
+  fieldSelectorContainer: {
+    flex: 0.6,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  arrowText: {
+    fontSize: 18,
+    marginHorizontal: 10,
+    color: '#888',
+  },
+  fieldSelector: {
+    flex: 1,
   },
   fieldItem: {
-    padding: 10,
-    backgroundColor: '#e0e0e0',
-    marginBottom: 5,
-    flexDirection: 'row',
-    justifyContent: 'space-between'
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 16,
+    marginRight: 8,
   },
-  mappedText: {
-    color: 'green',
-    fontWeight: 'bold'
+  selectedField: {
+    backgroundColor: '#007AFF',
+  },
+  fieldText: {
+    fontSize: 13,
+    color: '#444',
+  },
+  selectedFieldText: {
+    color: 'white',
+    fontWeight: '500',
   },
   buttonContainer: {
     flexDirection: 'row',

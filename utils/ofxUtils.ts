@@ -1,15 +1,17 @@
 import * as FileSystem from 'expo-file-system';
+import { Platform } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
 import { Transaction, TransactionType } from '@/types/transaction';
-import { 
-  OFXDocument, 
-  OFXParseResult, 
-  OFXTransaction, 
+import {
+  OFXDocument,
+  OFXParseResult,
+  OFXTransaction,
   OFXStatement,
   OFXFieldMapping,
   TransactionMatchResult,
   ImportData
 } from '@/types/import';
+import { readFileAsString } from './csvUtils';
 
 /**
  * Detects if a file is an OFX/QFX file based on its content
@@ -42,16 +44,30 @@ export const detectOFXVersion = (content: string): number => {
  */
 export const parseOFXFile = async (fileUri: string): Promise<OFXParseResult> => {
   try {
-    // Read file content
-    const content = await FileSystem.readAsStringAsync(fileUri);
+    console.log('[DEBUG] OFX Import: Starting OFX file parsing', { fileUri });
+    console.log('[DEBUG] OFX Import: Platform is', Platform.OS);
+    
+    // Read file content using cross-platform utility
+    let content: string;
+    try {
+      console.log('[DEBUG] OFX Import: About to read file content');
+      content = await readFileAsString(fileUri);
+      console.log('[DEBUG] OFX Import: File content read successfully', { contentLength: content.length });
+    } catch (readError) {
+      console.error('[DEBUG] OFX Import: Error reading file content', readError);
+      throw readError;
+    }
     
     // Detect OFX version
     const version = detectOFXVersion(content);
+    console.log('[DEBUG] OFX Import: Detected OFX version', { version });
     
     // Parse based on version
     if (version === 2) {
+      console.log('[DEBUG] OFX Import: Parsing as OFX 2.x (XML format)');
       return parseOFX2(content);
     } else {
+      console.log('[DEBUG] OFX Import: Parsing as OFX 1.x (SGML format)');
       return parseOFX1(content);
     }
   } catch (error) {
@@ -622,12 +638,20 @@ export const convertOFXToTransactions = (
  */
 export const importFromOFX = async (fileUri: string): Promise<ImportData> => {
   try {
+    console.log('[DEBUG] OFX Import: Starting importFromOFX', { fileUri });
+    
     // Parse the OFX file
     const parseResult = await parseOFXFile(fileUri);
     
     if (parseResult.error) {
+      console.error('[DEBUG] OFX Import: Error in parse result', { error: parseResult.error });
       throw new Error(parseResult.error);
     }
+    
+    console.log('[DEBUG] OFX Import: OFX file parsed successfully', {
+      transactionCount: parseResult.transactions.length,
+      statementCount: parseResult.statements.length
+    });
     
     // Create preview data
     const preview = parseResult.transactions.map(tx => ({
