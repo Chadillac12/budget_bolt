@@ -639,17 +639,45 @@ export const detectDuplicateTransactions = (
   const unique: Transaction[] = [];
   const duplicates: Transaction[] = [];
   
+  // Helper function to safely get timestamp from a date (which might be a string or Date object)
+  const getTimestamp = (date: Date | string): number => {
+    if (date instanceof Date) {
+      return date.getTime();
+    } else if (typeof date === 'string') {
+      return new Date(date).getTime();
+    }
+    // If for some reason date is invalid, return current timestamp as fallback
+    return Date.now();
+  };
+  
   for (const newTx of newTransactions) {
-    // Check for potential duplicates based on date, amount, and payee
-    const potentialDuplicates = existingTransactions.filter(existingTx => 
-      Math.abs((existingTx.date.getTime() - newTx.date.getTime()) / (1000 * 60 * 60 * 24)) <= 3 && // Within 3 days
-      Math.abs(existingTx.amount - newTx.amount) < 0.01 && // Same amount (accounting for floating point errors)
-      existingTx.payee === newTx.payee // Same payee
-    );
-    
-    if (potentialDuplicates.length > 0) {
-      duplicates.push(newTx);
-    } else {
+    try {
+      // Make sure new transaction date is a valid date
+      const newTxTime = getTimestamp(newTx.date);
+      
+      // Check for potential duplicates based on date, amount, and payee
+      const potentialDuplicates = existingTransactions.filter(existingTx => {
+        try {
+          const existingTxTime = getTimestamp(existingTx.date);
+          return (
+            Math.abs((existingTxTime - newTxTime) / (1000 * 60 * 60 * 24)) <= 3 && // Within 3 days
+            Math.abs(existingTx.amount - newTx.amount) < 0.01 && // Same amount (accounting for floating point errors)
+            existingTx.payee === newTx.payee // Same payee
+          );
+        } catch (err) {
+          console.error('[DEBUG] Error comparing transaction:', err, existingTx);
+          return false; // Skip this transaction if there's an error
+        }
+      });
+      
+      if (potentialDuplicates.length > 0) {
+        duplicates.push(newTx);
+      } else {
+        unique.push(newTx);
+      }
+    } catch (err) {
+      console.error('[DEBUG] Error processing new transaction:', err, newTx);
+      // If there's an error with this transaction, consider it unique to avoid data loss
       unique.push(newTx);
     }
   }

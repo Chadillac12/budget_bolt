@@ -36,6 +36,7 @@ const ImportWizard = () => {
   const [bankConnections, setBankConnections] = useState<BankConnection[]>([]);
   const [selectedConnection, setSelectedConnection] = useState<BankConnection | null>(null);
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
+  const [csvAccountSelection, setCsvAccountSelection] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [importStats, setImportStats] = useState<ImportStats | null>(null);
   
@@ -69,27 +70,49 @@ const ImportWizard = () => {
   // Handle file picker
   const handleFilePicker = async () => {
     try {
+      console.log('[DEBUG] Import: Preparing document picker');
       const result = await DocumentPicker.getDocumentAsync({
         type: ['text/csv', 'application/x-ofx', 'application/ofx', 'application/x-qfx', 'application/qfx'],
         copyToCacheDirectory: true,
       });
       
-      handleFileSelect(result);
+      if (result.canceled) {
+        console.log('[DEBUG] Import: File selection cancelled');
+        return;
+      }
+      
+      if (result.assets && result.assets.length > 0) {
+        handleFileSelect(result.assets[0]);
+      } else {
+        console.log('[DEBUG] Import: No file selected or empty result');
+      }
     } catch (error) {
-      console.error('File picker error:', error);
+      console.error('[DEBUG] Import: File picker error:', error);
+      Alert.alert(
+        'File Selection Error',
+        'There was a problem selecting the file. Please try again.',
+        [{ text: 'OK' }]
+      );
     }
   };
   
   // Handle file selection
-  const handleFileSelect = async (result: DocumentPicker.DocumentResult) => {
-    if (result.type !== 'success') return;
+  const handleFileSelect = async (file: DocumentPicker.DocumentPickerAsset) => {
+    if (!file) {
+      console.log('[DEBUG] Import: No file selected');
+      return;
+    }
     
     try {
       setLoading(true);
-      console.log('[DEBUG] Import: File selected successfully', { fileName: result.name, fileSize: result.size });
+      console.log('[DEBUG] Import: File selected successfully', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.mimeType
+      });
       
       // Read file content to detect format
-      const fileUri = result.uri;
+      const fileUri = file.uri;
       setCurrentFileUri(fileUri); // Store the file URI for later use
       console.log('[DEBUG] Import: About to read file content from URI', { fileUri });
       
@@ -113,18 +136,39 @@ const ImportWizard = () => {
           setFileFormat('csv');
         }
         
+        console.log('[DEBUG] Import: Setting fileData state with', {
+          headers: importData.headers?.length || 0,
+          previewRowCount: importData.preview?.length || 0,
+          format: importData.format
+        });
+        
+        // Store the data and explicitly move to next step
         setFileData(importData);
+        
+        // Explicitly set step to 3 (column mapping for CSV, confirmation for OFX/QFX)
+        console.log('[DEBUG] Import: Setting step to 3');
+        // Ensure we're setting state in the correct order and waiting for the update
+        setTimeout(() => {
+          console.log('[DEBUG] Import: Moving to step 3 after timeout');
+          setStep(3);
+        }, 100);
       } catch (readError) {
         console.error('[DEBUG] Import: Error reading file content', readError);
-        Alert.alert('Import Error', 'Failed to read file. Please check the file format and try again.');
-        throw readError;
+        Alert.alert(
+          'Import Error',
+          `Failed to read file: ${readError instanceof Error ? readError.message : 'Unknown error'}. Please check the file format and try again.`,
+          [{ text: 'OK' }]
+        );
+        setLoading(false);
+        return;
       }
-      
-      // Set step to 3 (column mapping for CSV, confirmation for OFX/QFX)
-      setStep(3);
     } catch (error) {
       console.error('[DEBUG] Import: Import error:', error);
-      Alert.alert('Import Error', 'Failed to import file. Please check the file format.');
+      Alert.alert(
+        'Import Error',
+        `Failed to import file: ${error instanceof Error ? error.message : 'Unknown error'}. Please check the file format.`,
+        [{ text: 'OK' }]
+      );
     } finally {
       setLoading(false);
     }
@@ -153,7 +197,13 @@ const ImportWizard = () => {
   // Handle column mapping
   const handleColumnMapping = (mapping: Record<string, string>) => {
     setColumnMapping(mapping);
-    setStep(4); // Go to confirmation step
+    // If more than one account, require selection; else auto-select
+    if (state.accounts.length > 1) {
+      setStep(4); // New step: account selection for CSV
+    } else {
+      setCsvAccountSelection(state.accounts[0].id);
+      setStep(5); // Go to confirmation
+    }
   };
 
   // Handle import from file
@@ -171,61 +221,13 @@ const ImportWizard = () => {
         fileData.preview = fullData.preview;
       }
       
-      if (fileFormat === 'ofx' || fileFormat === 'qfx') {
-        // For OFX/QFX files, we already have structured data
-        // We just need to convert it to Transaction objects
-        // First, get the account ID from the user selection or use a default
-        const accountId = state.accounts.length > 0 ? state.accounts[0].id : '';
-        
-        // Convert OFX transactions to app transactions
-        transactionObjects = convertOFXToTransactions(
-          fileData.preview as any[], // This is actually OFXTransaction[] but we're simplifying the types
-          accountId
-        );
-        
-        // Check for duplicates using OFX-specific duplicate detection
-        const { duplicates, unique, updated } = detectDuplicateOFXTransactions(
-          transactionObjects,
-          state.transactions
-        );
-        
-        // Categorize transactions
-        const categorizedTransactions = categorizeTransactions(
-          unique,
-          state.rules,
-          {} // Payee categories would be derived from state.payees
-        );
-        
-        // Add transactions to state
-        categorizedTransactions.forEach(transaction => {
-          dispatch({
-            type: 'ADD_TRANSACTION',
-            payload: transaction,
-          });
-        });
-        
-        // Update existing transactions if needed
-        if (updated.length > 0) {
-          dispatch({
-            type: 'BATCH_UPDATE_TRANSACTIONS',
-            payload: updated,
-          });
-        }
-        
-        // Set import stats
-        setImportStats({
-          added: unique.length,
-          updated: updated.length,
-          duplicates: duplicates.length,
-          errors: 0,
-        });
-      } else {
-        // For CSV files, process the mapped data
+      if (fileFormat === 'csv') {
+        const accountId = csvAccountSelection || (state.accounts.length > 0 ? state.accounts[0].id : '');
         const transactions = fileData.preview.map(item => {
           const tx: Record<string, any> = {};
           
           // Process the column mapping
-          Object.entries(columnMapping).forEach(([csvHeader, appField]) => {
+          Object.entries(columnMapping).forEach(([appField, csvHeader]) => {
             // Get the value from the CSV row using the header
             const value = item[csvHeader];
             if (value !== undefined) {
@@ -233,64 +235,92 @@ const ImportWizard = () => {
             }
           });
           
-          return tx;
-        });
-        
-        // Convert the mapped data to Transaction objects
-        transactionObjects = transactions.map(item => {
-          // Determine transaction type
+          // Use a default transaction type of expense
           let transactionType: TransactionType = 'expense';
-          let amount = 0;
           
-          // Parse the amount from the mapped data
-          if (item.amount) {
-            // Remove any non-numeric characters except minus sign and decimal point
-            const cleanAmount = item.amount.toString().replace(/[^\d.-]/g, '');
-            amount = parseFloat(cleanAmount);
+          // Parse the amount value
+          let transactionAmount = 0;
+          if (tx.amount) {
+            // Remove any currency symbols or commas and parse
+            let amountStr = String(tx.amount).replace(/[$,]/g, '');
+            transactionAmount = Math.abs(parseFloat(amountStr) || 0);
             
-            if (!isNaN(amount)) {
-              if (amount > 0) {
+            // Determine if this is income or expense based on the amount sign or transaction type
+            if (tx.type) {
+              const typeStr = String(tx.type).toLowerCase();
+              if (
+                typeStr.includes('deposit') || 
+                typeStr.includes('credit') ||
+                typeStr === 'income' ||
+                typeStr === 'credit'
+              ) {
                 transactionType = 'income';
-              } else if (item.type === 'transfer') {
-                transactionType = 'transfer';
+              } else {
+                transactionType = 'expense';
               }
+            } else {
+              // If no type specified, determine by sign
+              // In most bank exports, positive = deposit, negative = withdrawal
+              transactionType = parseFloat(amountStr) >= 0 ? 'income' : 'expense';
             }
           }
           
-          // Find an account to use (use first account if not specified)
-          const accountId = item.accountId || (state.accounts.length > 0 ? state.accounts[0].id : '');
-          
-          // Create a date object from the date string
+          // Parse the date value
           let transactionDate = new Date();
-          if (item.date) {
+          if (tx.date) {
             try {
-              transactionDate = new Date(item.date);
-              // If date is invalid, try different formats
-              if (isNaN(transactionDate.getTime())) {
-                // Try different date formats
-                const dateParts = item.date.split(/[-/]/);
-                if (dateParts.length === 3) {
-                  transactionDate = new Date(
-                    parseInt(dateParts[2]),
-                    parseInt(dateParts[1]) - 1,
-                    parseInt(dateParts[0])
-                  );
+              // Try standard date parsing first
+              const parsedDate = new Date(tx.date);
+              
+              // Check if the parsed date is valid
+              if (!isNaN(parsedDate.getTime())) {
+                transactionDate = parsedDate;
+              } else {
+                // Try different common date formats
+                // MM/DD/YYYY or DD/MM/YYYY
+                const dateParts = tx.date.split(/[\/\-\.]/);
+                if (dateParts.length >= 3) {
+                  // Try to determine format based on part sizes
+                  if (dateParts[0].length === 4) {
+                    // YYYY-MM-DD format
+                    transactionDate = new Date(
+                      parseInt(dateParts[0]),
+                      parseInt(dateParts[1]) - 1,
+                      parseInt(dateParts[2])
+                    );
+                  } else {
+                    // Assume MM/DD/YYYY (most common in US exports)
+                    transactionDate = new Date(
+                      parseInt(dateParts[2]),
+                      parseInt(dateParts[0]) - 1,
+                      parseInt(dateParts[1])
+                    );
+                  }
                 }
               }
-            } catch (err) {
-              console.error('Error parsing date:', err);
+              
+              // Verify that the parsed date is valid
+              if (isNaN(transactionDate.getTime())) {
+                console.log(`[DEBUG] Invalid date after parsing: ${tx.date}, using current date instead`);
+                transactionDate = new Date(); // Fallback to current date
+              }
+            } catch (e) {
+              console.log('[DEBUG] Error parsing date:', tx.date, e);
+              // Keep default date if parsing fails
+              transactionDate = new Date();
             }
           }
           
+          // Create the transaction object
           return {
             id: item.id || `import-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
             accountId: accountId,
             date: transactionDate,
-            payee: item.payee || '',
-            amount: amount,
+            payee: tx.payee || '',
+            amount: transactionAmount,
             type: transactionType,
-            categoryId: item.categoryId || (item.category ? item.category : ''),
-            description: item.description || '',
+            categoryId: tx.categoryId || (tx.category ? tx.category : ''),
+            description: tx.description || tx.notes || '',
             isReconciled: false,
             isCleared: true,
             tags: [],
@@ -300,40 +330,84 @@ const ImportWizard = () => {
           } as Transaction;
         });
         
-        // Check for duplicates
-        const { duplicates, unique } = detectDuplicateTransactions(
-          transactionObjects,
-          state.transactions
-        );
+        // Filter out transactions with no amount or invalid data
+        const validTransactions = transactions.filter(t => t.amount > 0 && (t.payee || t.description));
         
-        // Categorize transactions
-        const categorizedTransactions = categorizeTransactions(
-          unique,
-          state.rules,
-          {} // Payee categories would be derived from state.payees
-        );
+        console.log(`[DEBUG] Found ${validTransactions.length} valid transactions out of ${transactions.length} total`);
         
-        // Add transactions to state
-        categorizedTransactions.forEach(transaction => {
-          dispatch({
-            type: 'ADD_TRANSACTION',
-            payload: transaction,
+        try {
+          // Check for duplicates
+          const { duplicates, unique } = detectDuplicateTransactions(
+            validTransactions,
+            state.transactions
+          );
+          
+          // Categorize transactions
+          const categorizedTransactions = categorizeTransactions(
+            unique,
+            state.rules,
+            {} // Payee categories would be derived from state.payees
+          );
+          
+          // Add transactions to state
+          categorizedTransactions.forEach(transaction => {
+            dispatch({
+              type: 'ADD_TRANSACTION',
+              payload: transaction,
+            });
           });
-        });
-        
-        // Set import stats
+          
+          // Set import stats
+          setImportStats({
+            added: unique.length,
+            updated: 0,
+            duplicates: duplicates.length,
+            errors: transactions.length - validTransactions.length,
+          });
+        } catch (error) {
+          console.error('[DEBUG] Error during duplicate detection or categorization:', error);
+          // Even if duplicate detection fails, still add all valid transactions
+          validTransactions.forEach(transaction => {
+            dispatch({
+              type: 'ADD_TRANSACTION',
+              payload: transaction,
+            });
+          });
+          
+          setImportStats({
+            added: validTransactions.length,
+            updated: 0,
+            duplicates: 0,
+            errors: transactions.length - validTransactions.length,
+          });
+        }
+      } else if (fileFormat === 'ofx' || fileFormat === 'qfx') {
+        // OFX/QFX import logic
+        // This would be handled separately as these are structured formats
+        console.log('[DEBUG] OFX/QFX import not yet implemented');
         setImportStats({
-          added: unique.length,
+          added: 0,
           updated: 0,
-          duplicates: duplicates.length,
+          duplicates: 0,
           errors: 0,
         });
       }
       
-      setStep(5); // Go to success step
+      setStep(6); // Go to success step
     } catch (error) {
-      console.error('Final import error:', error);
-      Alert.alert('Import Error', 'Failed to import transactions. Please try again.');
+      console.error('[DEBUG] Final import error:', error);
+      // Include more details in the error message to help with debugging
+      const errorDetails = error instanceof Error 
+        ? `${error.message}${error.stack ? '\n' + error.stack : ''}` 
+        : String(error);
+      
+      console.error('[DEBUG] Detailed error information:', errorDetails);
+      
+      Alert.alert(
+        'Import Error', 
+        'Failed to import transactions. This may be due to an issue with the file format or data. Please try again with a different file or contact support.',
+        [{ text: 'OK' }]
+      );
     } finally {
       setLoading(false);
     }
@@ -389,7 +463,7 @@ const ImportWizard = () => {
         errors: result.errors.length,
       });
       
-      setStep(5); // Go to success step
+      setStep(6); // Go to success step
     } catch (error) {
       console.error('Bank import error:', error);
       Alert.alert('Import Error', 'Failed to import transactions from bank. Please try again.');
@@ -400,10 +474,19 @@ const ImportWizard = () => {
   
   // Handle import based on source
   const handleImport = async () => {
-    if (importSource === 'file') {
-      await handleFileImport();
-    } else if (importSource === 'bank') {
-      await handleBankImport();
+    try {
+      if (importSource === 'file') {
+        await handleFileImport();
+      } else if (importSource === 'bank') {
+        await handleBankImport();
+      }
+    } catch (error) {
+      console.error('[DEBUG] Error during import:', error);
+      Alert.alert(
+        'Import Error',
+        `There was a problem during the import process. ${error instanceof Error ? error.message : 'Please try again later.'}`,
+        [{ text: 'OK' }]
+      );
     }
   };
 
@@ -548,6 +631,37 @@ const ImportWizard = () => {
       </View>
     );
   };
+
+  // Render account selection step for CSV
+  const renderCsvAccountSelectionStep = () => (
+    <View style={styles.stepContainer}>
+      <Text style={styles.stepTitle}>Select Account</Text>
+      <Text style={styles.stepDescription}>
+        Choose which account to import these transactions into
+      </Text>
+      <FlatList
+        data={state.accounts}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.accountItem}
+            onPress={() => {
+              setCsvAccountSelection(item.id);
+              setStep(5);
+            }}
+          >
+            <Text style={styles.accountName}>{item.name}</Text>
+            <Text style={styles.accountBalance}>Balance: ${item.balance.toFixed(2)}</Text>
+          </TouchableOpacity>
+        )}
+        contentContainerStyle={styles.accountsList}
+      />
+      <TouchableOpacity style={styles.backButton} onPress={() => setStep(3)}>
+        <Ionicons name="arrow-back" size={20} color="#2196F3" />
+        <Text style={styles.backButtonText}>Back to Mapping</Text>
+      </TouchableOpacity>
+    </View>
+  );
   
   // Render loading overlay
   const renderLoadingOverlay = () => (
@@ -559,9 +673,33 @@ const ImportWizard = () => {
     </View>
   );
   
+  // Debug display for troubleshooting (only in development)
+  const renderDebugInfo = () => {
+    if (__DEV__) {
+      return (
+        <View style={styles.debugContainer}>
+          <Text style={styles.debugTitle}>Debug Info:</Text>
+          <Text style={styles.debugText}>Current step: {step}</Text>
+          <Text style={styles.debugText}>Import source: {importSource}</Text>
+          <Text style={styles.debugText}>File format: {fileFormat}</Text>
+          <Text style={styles.debugText}>Has file data: {fileData ? 'Yes' : 'No'}</Text>
+          {fileData && (
+            <>
+              <Text style={styles.debugText}>Headers: {fileData.headers?.length || 0}</Text>
+              <Text style={styles.debugText}>Preview rows: {fileData.preview?.length || 0}</Text>
+            </>
+          )}
+        </View>
+      );
+    }
+    return null;
+  };
+  
   return (
     <View style={styles.container}>
       {loading && renderLoadingOverlay()}
+      
+      {__DEV__ && renderDebugInfo()}
       
       {step === 1 && renderSourceSelectionStep()}
       
@@ -569,26 +707,16 @@ const ImportWizard = () => {
       
       {step === 3 && importSource === 'bank' && renderAccountSelectionStep()}
       
-      {step === 3 && importSource === 'file' && fileData && (
-        fileFormat === 'csv' ? (
-          <ColumnMappingStep
-            data={fileData.preview}
-            headers={fileData.headers}
-            onMappingComplete={handleColumnMapping}
-            onCancel={() => setStep(1)}
-          />
-        ) : (
-          // For OFX/QFX files, we can skip the column mapping step
-          // and go directly to confirmation
-          <ImportConfirmationStep
-            data={fileData.preview}
-            onConfirm={handleImport}
-            onCancel={() => setStep(1)}
-            importSource={importSource}
-            fileFormat={fileFormat}
-          />
-        )
+      {step === 3 && importSource === 'file' && fileData && fileFormat === 'csv' && (
+        <ColumnMappingStep
+          data={fileData.preview || []}
+          headers={fileData.headers || []}
+          onMappingComplete={handleColumnMapping}
+          onCancel={() => setStep(1)}
+        />
       )}
+      
+      {step === 4 && importSource === 'file' && fileFormat === 'csv' && renderCsvAccountSelectionStep()}
       
       {step === 4 && (
         <ImportConfirmationStep
@@ -597,12 +725,24 @@ const ImportWizard = () => {
           onCancel={() => setStep(importSource === 'file' ? 3 : 3)}
           importSource={importSource}
           bankName={selectedConnection?.institutionName}
-          accountId={selectedAccount}
+          accountId={csvAccountSelection || selectedAccount}
           fileFormat={fileFormat}
         />
       )}
       
       {step === 5 && (
+        <ImportConfirmationStep
+          data={importSource === 'file' ? fileData?.preview || [] : []}
+          onConfirm={handleImport}
+          onCancel={() => setStep(importSource === 'file' ? 4 : 3)}
+          importSource={importSource}
+          bankName={selectedConnection?.institutionName}
+          accountId={csvAccountSelection || selectedAccount}
+          fileFormat={fileFormat}
+        />
+      )}
+      
+      {step === 6 && (
         <ImportSuccessStep
           stats={importStats}
           importSource={importSource}
@@ -757,6 +897,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#212121',
     marginTop: 16,
+  },
+  // Debug styles
+  debugContainer: {
+    padding: 8,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 4,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  debugTitle: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginBottom: 4,
+    color: '#333',
+  },
+  debugText: {
+    fontSize: 12,
+    color: '#666',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   }
 });
 

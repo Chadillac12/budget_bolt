@@ -431,11 +431,15 @@ const styles = StyleSheet.create({
     padding: 16,
     marginHorizontal: 16,
     marginVertical: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }
+      : {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 2,
+        }),
   },
   chart: {
     marginVertical: 8,
@@ -447,11 +451,15 @@ const styles = StyleSheet.create({
     padding: 16,
     marginHorizontal: 16,
     marginVertical: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }
+      : {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 2,
+        }),
   },
   sectionHeader: {
     flexDirection: 'row',

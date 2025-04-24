@@ -3,17 +3,34 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 
 interface FileSelectStepProps {
-  onFileSelect: (result: DocumentPicker.DocumentResult) => void;
+  onFileSelect: (result: DocumentPicker.DocumentPickerAsset) => void;
 }
 
 const FileSelectStep: React.FC<FileSelectStepProps> = ({ onFileSelect }) => {
   const handlePress = async () => {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: ['text/csv', 'application/x-ofx', 'application/ofx', 'application/x-qfx', 'application/qfx'],
-      copyToCacheDirectory: true
-    });
-    if (result.type === 'success') {
-      onFileSelect(result);
+    try {
+      console.log('[DEBUG] Import: Opening document picker');
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['text/csv', 'application/x-ofx', 'application/ofx', 'application/x-qfx', 'application/qfx'],
+        copyToCacheDirectory: true
+      });
+      
+      console.log('[DEBUG] Import: Document picker result:', result);
+      
+      if (result.canceled) {
+        console.log('[DEBUG] Import: File selection cancelled');
+        return;
+      }
+      
+      if (result.assets && result.assets.length > 0) {
+        const selectedFile = result.assets[0];
+        console.log('[DEBUG] Import: File selected successfully:', selectedFile.name);
+        onFileSelect(selectedFile);
+      } else {
+        console.log('[DEBUG] Import: No file selected or empty result');
+      }
+    } catch (error) {
+      console.error('[DEBUG] Import: Error in document picker:', error);
     }
   };
 

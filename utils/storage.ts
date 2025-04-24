@@ -13,6 +13,23 @@ const KEYS = {
   SETTINGS: 'budget_tracker_settings',
 };
 
+// Helper function to revive dates when parsing JSON
+const reviveDates = (key: string, value: any): any => {
+  // Check for date strings (ISO format: YYYY-MM-DDTHH:mm:ss.sssZ)
+  if (typeof value === 'string' && 
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.*Z$/.test(value)) {
+    return new Date(value);
+  }
+  
+  // For transaction objects, ensure the date property is a Date object
+  if (key === 'date' && typeof value === 'string') {
+    return new Date(value);
+  }
+  
+  // Return the unmodified value for everything else
+  return value;
+};
+
 // Basic storage operations
 export const storeData = async (key: string, value: any): Promise<void> => {
   try {
@@ -26,16 +43,23 @@ export const storeData = async (key: string, value: any): Promise<void> => {
   }
 };
 
-export const getData = async (key: string): Promise<any> => {
+export const getData = async <T>(key: string): Promise<T | null> => {
   try {
     console.log(`Retrieving data for key: ${key}`);
     const jsonValue = await AsyncStorage.getItem(key);
-    const parsedValue = jsonValue != null ? JSON.parse(jsonValue) : null;
+    
+    // If no data found, return null
+    if (jsonValue === null) {
+      return null;
+    }
+    
+    // Parse the JSON with the date reviver function
+    const parsedValue = JSON.parse(jsonValue, reviveDates) as T;
     console.log(`Retrieved data for key: ${key}`, parsedValue);
     return parsedValue;
   } catch (error) {
     console.error('Error retrieving data:', error);
-    throw error;
+    return null;
   }
 };
 

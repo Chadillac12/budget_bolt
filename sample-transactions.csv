@@ -1,0 +1,11 @@
+Date,Description,Amount,Category,Type,Notes
+2023-01-05,Grocery Store Purchase,-45.67,Food,expense,Weekly shopping
+2023-01-10,Coffee Shop,-4.25,Dining,expense,Morning coffee
+2023-01-15,Paycheck Deposit,1200.00,Income,income,Bi-weekly paycheck
+2023-01-16,Electric Bill,-85.23,Utilities,expense,January electric bill
+2023-01-17,Internet Service,-69.99,Utilities,expense,Monthly internet
+2023-01-20,Gasoline,-38.50,Transportation,expense,Gas station fill-up
+2023-01-22,Restaurant,-52.86,Dining,expense,Dinner with friends
+2023-01-25,Pharmacy,-23.45,Healthcare,expense,Prescription medication
+2023-01-28,Savings Transfer,-200.00,Savings,transfer,Monthly savings
+2023-01-30,Mobile Phone Bill,-75.00,Utilities,expense,Monthly phone bill
