@@ -14,6 +14,9 @@ import { useAppContext } from '@/context/AppContext';
 import { BudgetCategory, BudgetCategoryGroup } from '@/types/budget';
 import { v4 as uuidv4 } from 'uuid';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 
 interface BudgetCategoryFormValues {
   id: string;
@@ -29,6 +32,8 @@ interface BudgetGroupFormValues {
 
 const BudgetCategoryManager: React.FC = () => {
   const { state, dispatch } = useAppContext();
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const [categories, setCategories] = useState<BudgetCategory[]>([]);
   const [groups, setGroups] = useState<BudgetCategoryGroup[]>([]);
   
@@ -456,7 +461,7 @@ const BudgetCategoryManager: React.FC = () => {
               }
             }}
           >
-            <Ionicons name="pencil" size={20} color="#007AFF" />
+            <Ionicons name="pencil" size={20} color={theme.colors.primary} />
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -469,7 +474,7 @@ const BudgetCategoryManager: React.FC = () => {
               }
             }}
           >
-            <Ionicons name="trash" size={20} color="#FF3B30" />
+            <Ionicons name="trash" size={20} color={theme.colors.error} />
           </TouchableOpacity>
         </View>
       </View>
@@ -527,7 +532,7 @@ const BudgetCategoryManager: React.FC = () => {
               setCategoryModalVisible(true);
             }}
           >
-            <Ionicons name="add-circle" size={20} color="white" />
+            <Ionicons name="add-circle" size={20} color={theme.colors.card} />
             <Text style={styles.buttonText}>Add Category</Text>
           </TouchableOpacity>
           
@@ -542,7 +547,7 @@ const BudgetCategoryManager: React.FC = () => {
               setGroupModalVisible(true);
             }}
           >
-            <Ionicons name="folder-open" size={20} color="white" />
+            <Ionicons name="folder-open" size={20} color={theme.colors.card} />
             <Text style={styles.buttonText}>Add Group</Text>
           </TouchableOpacity>
         </View>
@@ -677,7 +682,7 @@ const BudgetCategoryManager: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
@@ -699,17 +704,17 @@ const styles = StyleSheet.create({
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 8,
     marginRight: 12,
   },
   groupButton: {
-    backgroundColor: '#5856D6',
+    backgroundColor: theme.colors.secondary,
   },
   buttonText: {
-    color: 'white',
+    color: theme.colors.card,
     marginLeft: 6,
     fontWeight: '500',
   },
@@ -718,12 +723,12 @@ const styles = StyleSheet.create({
   },
   itemContainer: {
     flexDirection: 'row',
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: 8,
     padding: 16,
     marginBottom: 8,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -732,7 +737,7 @@ const styles = StyleSheet.create({
   groupContainer: {
     backgroundColor: '#f0f0f0',
     borderLeftWidth: 4,
-    borderLeftColor: '#5856D6',
+    borderLeftColor: theme.colors.secondary,
   },
   itemContent: {
     flex: 1,
@@ -754,7 +759,7 @@ const styles = StyleSheet.create({
   allocatedAmount: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#007AFF',
+    color: theme.colors.primary,
   },
   actionButtons: {
     flexDirection: 'row',
@@ -770,7 +775,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: 12,
     padding: 20,
     width: '90%',
@@ -820,10 +825,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   saveButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
   },
   saveButtonText: {
-    color: 'white',
+    color: theme.colors.card,
     fontWeight: '500',
     fontSize: 16,
   },

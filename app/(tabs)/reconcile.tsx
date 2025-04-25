@@ -9,8 +9,13 @@ import { getReconciliationSummary } from '@/utils/reconciliationUtils';
 import { CheckCircle2, AlertCircle, Clock, ChevronRight } from 'lucide-react-native';
 import ReconciliationWizard from '@/components/reconciliation/ReconciliationWizard';
 import ReconciliationHistory from '@/components/reconciliation/ReconciliationHistory';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 
 export default function ReconcileScreen() {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const { state } = useAppContext();
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [showReconciliationWizard, setShowReconciliationWizard] = useState(false);
@@ -68,22 +73,22 @@ export default function ReconcileScreen() {
       const daysSince = summary.daysSinceLastReconciliation || 0;
       
       if (daysSince <= 30) {
-        statusIcon = <CheckCircle2 size={18} color="#34C759" />;
+        statusIcon = <CheckCircle2 size={18} color={theme.colors.success} />;
         statusText = `Reconciled ${daysSince} days ago`;
-        statusColor = '#34C759';
+        statusColor = theme.colors.success;
       } else if (daysSince <= 60) {
-        statusIcon = <Clock size={18} color="#FF9500" />;
+        statusIcon = <Clock size={18} color={theme.colors.warning} />;
         statusText = `Reconciled ${daysSince} days ago`;
-        statusColor = '#FF9500';
+        statusColor = theme.colors.warning;
       } else {
-        statusIcon = <AlertCircle size={18} color="#FF3B30" />;
+        statusIcon = <AlertCircle size={18} color={theme.colors.error} />;
         statusText = `Reconciled ${daysSince} days ago`;
-        statusColor = '#FF3B30';
+        statusColor = theme.colors.error;
       }
     } else {
-      statusIcon = <AlertCircle size={18} color="#FF3B30" />;
+      statusIcon = <AlertCircle size={18} color={theme.colors.error} />;
       statusText = 'Never reconciled';
-      statusColor = '#FF3B30';
+      statusColor = theme.colors.error;
     }
     
     return (
@@ -215,10 +220,10 @@ export default function ReconcileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
   },
   listContent: {
     padding: 16,
@@ -230,10 +235,10 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     marginBottom: 16,
-    color: '#000',
+    color: theme.colors.text,
   },
   infoBox: {
-    backgroundColor: '#E5F1FF',
+    backgroundColor: theme.colors.primaryContainer,
     padding: 16,
     borderRadius: 8,
     marginBottom: 16,
@@ -253,14 +258,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#000',
+    color: theme.colors.text,
   },
   accountCard: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: 8,
     marginBottom: 16,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -271,7 +276,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    borderBottomColor: theme.colors.surface,
   },
   accountIcon: {
     width: 40,
@@ -284,7 +289,7 @@ const styles = StyleSheet.create({
   accountIconText: {
     fontSize: 18,
     fontWeight: '600',
-    color: 'white',
+    color: theme.colors.card,
   },
   accountInfo: {
     flex: 1,
@@ -292,22 +297,22 @@ const styles = StyleSheet.create({
   accountName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: theme.colors.text,
     marginBottom: 2,
   },
   accountType: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
   },
   accountBalance: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: theme.colors.text,
   },
   reconcileStatus: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    borderBottomColor: theme.colors.surface,
   },
   statusContainer: {
     flexDirection: 'row',
@@ -324,7 +329,7 @@ const styles = StyleSheet.create({
   },
   transactionStatusText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
   },
   actionButtons: {
     flexDirection: 'row',
@@ -332,7 +337,7 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -342,17 +347,17 @@ const styles = StyleSheet.create({
   secondaryButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: theme.colors.primary,
     marginRight: 0,
     marginLeft: 8,
   },
   actionButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: 'white',
+    color: theme.colors.card,
   },
   secondaryButtonText: {
-    color: '#007AFF',
+    color: theme.colors.primary,
   },
   emptyState: {
     alignItems: 'center',
@@ -362,38 +367,38 @@ const styles = StyleSheet.create({
   emptyStateTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000',
+    color: theme.colors.text,
     marginBottom: 8,
   },
   emptyStateText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     textAlign: 'center',
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   closeButton: {
     padding: 8,
   },
   closeButtonText: {
     fontSize: 16,
-    color: '#007AFF',
+    color: theme.colors.primary,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000',
+    color: theme.colors.text,
   },
   placeholder: {
     width: 50,

@@ -19,12 +19,17 @@ import PayeeCategoryForm from '@/components/payees/PayeeCategoryForm';
 import { Transaction } from '@/types/transaction';
 import { calculatePayeeAnalytics } from '@/utils/payeeUtils';
 import { Plus, Search, Filter, Tag, ArrowLeft, BarChart3 } from 'lucide-react-native';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 
 /**
  * Payee Management Screen
  * Allows users to view, create, edit, and delete payees
  */
 export default function PayeesScreen() {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const { state, dispatch } = useAppContext();
   
   // UI state
@@ -237,14 +242,14 @@ export default function PayeesScreen() {
       style={[
         styles.categoryFilterItem,
         selectedCategoryIds.includes(item.id) && styles.selectedCategoryFilterItem,
-        { borderColor: item.color || '#E5E5EA' }
+        { borderColor: item.color || theme.colors.border }
       ]}
       onPress={() => handleToggleCategory(item.id)}
     >
       <View 
         style={[
           styles.categoryIndicator, 
-          { backgroundColor: item.color || '#E5E5EA' }
+          { backgroundColor: item.color || theme.colors.border }
         ]}
       />
       <Text style={styles.categoryFilterText}>{item.name}</Text>
@@ -257,7 +262,7 @@ export default function PayeesScreen() {
       <View 
         style={[
           styles.categoryColorIndicator, 
-          { backgroundColor: item.color || '#E5E5EA' }
+          { backgroundColor: item.color || theme.colors.border }
         ]}
       />
       <Text style={styles.categoryName}>{item.name}</Text>
@@ -290,7 +295,7 @@ export default function PayeesScreen() {
             style={styles.headerAction}
             onPress={handleAddPayee}
           >
-            <Plus size={24} color="#007AFF" />
+            <Plus size={24} color={theme.colors.primary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -298,7 +303,7 @@ export default function PayeesScreen() {
       {/* Search and Filter */}
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>
-          <Search size={20} color="#8E8E93" style={styles.searchIcon} />
+          <Search size={20} color={theme.colors.textSecondary} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             value={searchQuery}
@@ -315,7 +320,7 @@ export default function PayeesScreen() {
           ]}
           onPress={() => setShowActiveOnly(!showActiveOnly)}
         >
-          <Filter size={20} color={showActiveOnly ? 'white' : '#8E8E93'} />
+          <Filter size={20} color={showActiveOnly ? theme.colors.card : theme.colors.textSecondary} />
         </TouchableOpacity>
       </View>
       
@@ -334,7 +339,7 @@ export default function PayeesScreen() {
               style={styles.manageCategoriesButton}
               onPress={handleAddCategory}
             >
-              <Tag size={16} color="#007AFF" style={styles.manageCategoriesIcon} />
+              <Tag size={16} color={theme.colors.primary} style={styles.manageCategoriesIcon} />
               <Text style={styles.manageCategoriesText}>Manage</Text>
             </TouchableOpacity>
           }
@@ -351,7 +356,7 @@ export default function PayeesScreen() {
             style={styles.emptyStateButton}
             onPress={handleAddPayee}
           >
-            <Plus size={20} color="white" style={styles.emptyStateButtonIcon} />
+            <Plus size={20} color={theme.colors.card} style={styles.emptyStateButtonIcon} />
             <Text style={styles.emptyStateButtonText}>Add Payee</Text>
           </TouchableOpacity>
         </View>
@@ -428,7 +433,7 @@ export default function PayeesScreen() {
               style={styles.backButton}
               onPress={() => setShowAnalytics(false)}
             >
-              <ArrowLeft size={24} color="#007AFF" />
+              <ArrowLeft size={24} color={theme.colors.primary} />
             </TouchableOpacity>
             <Text style={styles.modalTitle}>Payee Analytics</Text>
           </View>
@@ -451,7 +456,7 @@ export default function PayeesScreen() {
               style={styles.backButton}
               onPress={() => setShowTransactions(false)}
             >
-              <ArrowLeft size={24} color="#007AFF" />
+              <ArrowLeft size={24} color={theme.colors.primary} />
             </TouchableOpacity>
             <Text style={styles.modalTitle}>Transactions</Text>
             
@@ -463,7 +468,7 @@ export default function PayeesScreen() {
                   setShowAnalytics(true);
                 }}
               >
-                <BarChart3 size={24} color="#007AFF" />
+                <BarChart3 size={24} color={theme.colors.primary} />
               </TouchableOpacity>
             )}
           </View>
@@ -509,19 +514,19 @@ export default function PayeesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   title: {
     fontSize: 24,
@@ -536,15 +541,15 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   searchInputContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     borderRadius: 10,
     paddingHorizontal: 12,
     marginRight: 12,
@@ -561,17 +566,17 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
   activeFilterButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
   },
   categoryFilterList: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   categoryFilterContent: {
     paddingHorizontal: 16,
@@ -587,7 +592,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   selectedCategoryFilterItem: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
   },
   categoryIndicator: {
     width: 12,
@@ -602,7 +607,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: theme.colors.primary,
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -612,7 +617,7 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   manageCategoriesText: {
-    color: '#007AFF',
+    color: theme.colors.primary,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -627,13 +632,13 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     textAlign: 'center',
     marginBottom: 16,
   },
   emptyStateButton: {
     flexDirection: 'row',
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -643,7 +648,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   emptyStateButtonText: {
-    color: 'white',
+    color: theme.colors.card,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -660,14 +665,14 @@ const styles = StyleSheet.create({
   },
   fullScreenModal: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
   },
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   backButton: {
     padding: 8,
@@ -684,10 +689,10 @@ const styles = StyleSheet.create({
   categoryItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   categoryColorIndicator: {
     width: 24,
@@ -706,11 +711,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 4,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     marginLeft: 8,
   },
   categoryActionText: {
-    color: '#007AFF',
+    color: theme.colors.primary,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -718,19 +723,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFE5E5',
   },
   categoryDeleteText: {
-    color: '#FF3B30',
+    color: theme.colors.error,
     fontSize: 14,
     fontWeight: '500',
   },
   transactionItem: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   transactionDate: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginBottom: 4,
   },
   transactionDescription: {
@@ -742,10 +747,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   expenseText: {
-    color: '#FF3B30',
+    color: theme.colors.error,
   },
   incomeText: {
-    color: '#34C759',
+    color: theme.colors.success,
   },
   transactionListContent: {
     paddingBottom: 16,

@@ -15,6 +15,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useFocusEffect } from '@react-navigation/native';
+import { AlertCircle, RefreshCw } from 'lucide-react-native';
 
 import CloudStorageSelector from '../../components/sync/CloudStorageSelector';
 import ConflictResolutionModal from '../../components/sync/ConflictResolutionModal';
@@ -37,12 +38,17 @@ import {
   setupSync
 } from '../../utils/syncUtils';
 import { useAppContext } from '../../context/AppContext';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 
 /**
  * Sync Settings and Status Screen
  * Allows users to configure sync settings and view sync status
  */
 export default function SyncScreen() {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const router = useRouter();
   const { state, dispatch } = useAppContext();
   const [syncState, setSyncState] = useState<SyncState | null>(null);
@@ -330,7 +336,7 @@ export default function SyncScreen() {
         
         {syncState?.error && (
           <View style={styles.errorContainer}>
-            <Ionicons name="alert-circle" size={20} color="#F44336" />
+            <AlertCircle size={48} color={theme.colors.textSecondary} />
             <Text style={styles.errorText}>{syncState.error}</Text>
           </View>
         )}
@@ -340,7 +346,7 @@ export default function SyncScreen() {
           onPress={handleManualSync}
           disabled={syncState?.status === SyncStatus.IN_PROGRESS}
         >
-          <Ionicons name="sync" size={20} color="white" />
+          <Ionicons name="sync" size={20} color="#FFFFFF" />
           <Text style={styles.syncButtonText}>Sync Now</Text>
         </TouchableOpacity>
       </View>
@@ -489,7 +495,7 @@ export default function SyncScreen() {
             style={styles.resolveButton}
             onPress={() => setConflictModalVisible(true)}
           >
-            <Ionicons name="git-merge" size={20} color="white" />
+            <Ionicons name="git-merge" size={20} color="#FFFFFF" />
             <Text style={styles.resolveButtonText}>Resolve Conflicts</Text>
           </TouchableOpacity>
         </View>
@@ -528,7 +534,7 @@ export default function SyncScreen() {
             );
           }}
         >
-          <Ionicons name="refresh-circle" size={20} color="#F44336" />
+          <RefreshCw size={48} color={theme.colors.textSecondary} />
           <Text style={styles.advancedButtonText}>Reset Sync</Text>
         </TouchableOpacity>
         
@@ -547,7 +553,7 @@ export default function SyncScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
@@ -565,11 +571,11 @@ const styles = StyleSheet.create({
     color: '#757575',
   },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -654,7 +660,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   syncButtonText: {
-    color: 'white',
+    color: theme.colors.card,
     fontSize: 16,
     fontWeight: '500',
     marginLeft: 8,
@@ -727,7 +733,7 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   resolveButtonText: {
-    color: 'white',
+    color: theme.colors.card,
     fontSize: 16,
     fontWeight: '500',
     marginLeft: 8,

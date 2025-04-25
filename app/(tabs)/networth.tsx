@@ -12,6 +12,9 @@ import { formatNetWorthDataForChart, calculateNetWorthChange, getNetWorthHistory
 import { generateUUID } from '@/utils/storage';
 import { LineChart } from 'react-native-chart-kit';
 import { Dimensions } from 'react-native';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 
 // Time range options for the chart
 const TIME_RANGES = [
@@ -23,6 +26,8 @@ const TIME_RANGES = [
 ];
 
 export default function NetWorthScreen() {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const { state, dispatch } = useAppContext();
   const [selectedRange, setSelectedRange] = useState(TIME_RANGES[0]);
   const [isLoading, setIsLoading] = useState(false);
@@ -65,8 +70,8 @@ export default function NetWorthScreen() {
   
   // Chart configuration
   const chartConfig = {
-    backgroundGradientFrom: '#ffffff',
-    backgroundGradientTo: '#ffffff',
+    backgroundGradientFrom: theme.colors.card,
+    backgroundGradientTo: theme.colors.card,
     color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`,
     strokeWidth: 2,
     decimalPlaces: 0,
@@ -103,7 +108,7 @@ export default function NetWorthScreen() {
             style={styles.headerButton}
             onPress={() => setShowHistory(true)}
           >
-            <History size={20} color="#007AFF" />
+            <History size={20} color={theme.colors.primary} />
           </TouchableOpacity>
           
           <Text style={styles.summaryTitle}>Current Net Worth</Text>
@@ -112,7 +117,7 @@ export default function NetWorthScreen() {
             style={styles.headerButton}
             onPress={() => setShowSettings(true)}
           >
-            <Settings size={20} color="#007AFF" />
+            <Settings size={20} color={theme.colors.primary} />
           </TouchableOpacity>
         </View>
         <Text style={[
@@ -126,9 +131,9 @@ export default function NetWorthScreen() {
         {netWorthChange.amount !== 0 && (
           <View style={styles.changeContainer}>
             {netWorthChange.amount > 0 ? (
-              <TrendingUp size={16} color="#34C759" />
+              <TrendingUp size={16} color={theme.colors.success} />
             ) : (
-              <TrendingDown size={16} color="#FF3B30" />
+              <TrendingDown size={16} color={theme.colors.error} />
             )}
             <Text style={[
               styles.changeText,
@@ -143,7 +148,7 @@ export default function NetWorthScreen() {
         <View style={styles.balanceBreakdown}>
           <View style={styles.balanceItem}>
             <View style={styles.balanceIconContainer}>
-              <TrendingUp size={14} color="#34C759" />
+              <TrendingUp size={14} color={theme.colors.success} />
             </View>
             <Text style={styles.balanceLabel}>Assets</Text>
             <Text style={styles.balanceValue}>
@@ -155,7 +160,7 @@ export default function NetWorthScreen() {
           
           <View style={styles.balanceItem}>
             <View style={styles.balanceIconContainer}>
-              <TrendingDown size={14} color="#FF3B30" />
+              <TrendingDown size={14} color={theme.colors.error} />
             </View>
             <Text style={styles.balanceLabel}>Liabilities</Text>
             <Text style={styles.balanceValue}>
@@ -310,10 +315,10 @@ export default function NetWorthScreen() {
         disabled={isLoading}
       >
         {isLoading ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={theme.colors.card} />
         ) : (
           <>
-            <Calendar size={20} color="#fff" />
+            <Calendar size={20} color={theme.colors.card} />
             <Text style={styles.createSnapshotText}>Create Snapshot</Text>
           </>
         )}
@@ -322,18 +327,18 @@ export default function NetWorthScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
   },
   summaryContainer: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     paddingTop: 20,
     paddingBottom: 24,
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   headerActions: {
     flexDirection: 'row',
@@ -348,17 +353,17 @@ const styles = StyleSheet.create({
   },
   summaryTitle: {
     fontSize: 16,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginBottom: 4,
   },
   summaryAmount: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#000',
+    color: theme.colors.text,
     marginBottom: 8,
   },
   negativeAmount: {
-    color: '#FF3B30',
+    color: theme.colors.error,
   },
   changeContainer: {
     flexDirection: 'row',
@@ -371,10 +376,10 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   positiveChange: {
-    color: '#34C759',
+    color: theme.colors.success,
   },
   negativeChange: {
-    color: '#FF3B30',
+    color: theme.colors.error,
   },
   balanceBreakdown: {
     flexDirection: 'row',
@@ -390,14 +395,14 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 4,
   },
   balanceLabel: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginBottom: 2,
   },
   balanceValue: {
@@ -407,15 +412,15 @@ const styles = StyleSheet.create({
   balanceDivider: {
     width: 1,
     height: 40,
-    backgroundColor: '#E5E5EA',
+    backgroundColor: theme.colors.border,
     marginHorizontal: 16,
   },
   timeRangeContainer: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
     marginTop: 16,
   },
   sectionTitle: {
@@ -426,22 +431,22 @@ const styles = StyleSheet.create({
   timeRangeButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     borderRadius: 16,
     marginRight: 8,
   },
   selectedTimeRange: {
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
   },
   timeRangeText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
   },
   selectedTimeRangeText: {
-    color: 'white',
+    color: theme.colors.card,
   },
   chartContainer: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     padding: 16,
     marginTop: 16,
     alignItems: 'center',
@@ -459,17 +464,17 @@ const styles = StyleSheet.create({
   noDataText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     textAlign: 'center',
   },
   noDataSubtext: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     textAlign: 'center',
     marginTop: 8,
   },
   accountsContainer: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     padding: 16,
     marginTop: 16,
     flex: 1,
@@ -489,10 +494,10 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   assetIndicator: {
-    backgroundColor: '#34C759',
+    backgroundColor: theme.colors.success,
   },
   liabilityIndicator: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: theme.colors.error,
   },
   accountSectionTitle: {
     fontSize: 16,
@@ -511,7 +516,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    borderBottomColor: theme.colors.surface,
   },
   accountName: {
     fontSize: 14,
@@ -522,7 +527,7 @@ const styles = StyleSheet.create({
   },
   emptyListText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     fontStyle: 'italic',
     textAlign: 'center',
     paddingVertical: 8,
@@ -533,18 +538,18 @@ const styles = StyleSheet.create({
     bottom: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 28,
-    shadowColor: '#000',
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
   },
   createSnapshotText: {
-    color: 'white',
+    color: theme.colors.card,
     fontWeight: '600',
     marginLeft: 8,
   },

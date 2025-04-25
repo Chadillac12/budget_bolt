@@ -260,6 +260,8 @@ const AddConnectionModal = ({
 
 // Main component
 export default function ConnectionsScreen() {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const { state, dispatch } = useAppContext();
   const [connections, setConnections] = useState<BankConnection[]>([]);
   const [institutions, setInstitutions] = useState<BankInstitution[]>([]);
@@ -420,6 +422,9 @@ export default function ConnectionsScreen() {
               <Text style={styles.emptyText}>No bank connections</Text>
               <Text style={styles.emptySubtext}>
                 Connect your bank accounts to automatically import transactions
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
               </Text>
               <Button
                 mode="contained"
@@ -473,7 +478,7 @@ export default function ConnectionsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
@@ -517,12 +522,12 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   connectionItem: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 1.41,
@@ -545,7 +550,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 12,
-    color: 'white',
+    color: theme.colors.card,
     fontWeight: 'bold',
   },
   connectionDetails: {
@@ -596,7 +601,7 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   syncingContent: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     padding: 20,
     borderRadius: 8,
     alignItems: 'center',
@@ -607,7 +612,7 @@ const styles = StyleSheet.create({
     color: '#212121',
   },
   modalContainer: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     padding: 20,
     margin: 20,
     borderRadius: 8,

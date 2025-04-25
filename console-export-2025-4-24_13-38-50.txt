@@ -1,0 +1,238 @@
+13:38:35.690 Running application "main" with appParams:
+ 
+Object { rootTag: "#root", hydrate: undefined }
+ 
+Development-level warnings: ON.
+Performance optimizations: OFF. entry.bundle:76822:17
+13:38:35.786 "shadow*" style props are deprecated. Use "boxShadow". entry.bundle:39974:15
+13:38:35.895 Retrieving data for key: budget_tracker_accounts entry.bundle:222654:15
+13:38:35.895 Failed to initialize sync system: TypeError: _syncUtils.setupSync is not a function
+    initSync \ws_c\budget_bolt\context\AppContext.tsx:658
+    AppProvider \ws_c\budget_bolt\context\AppContext.tsx:670
+    React 8
+    workLoop \ws_c\budget_bolt\node_modules\scheduler\cjs\scheduler.development.js:266
+    flushWork \ws_c\budget_bolt\node_modules\scheduler\cjs\scheduler.development.js:239
+    performWorkUntilDeadline \ws_c\budget_bolt\node_modules\scheduler\cjs\scheduler.development.js:533
+entry.bundle:3599:33
+13:38:35.902 Loaded theme from storage: dark entry.bundle:91743:19
+13:38:35.902 Setting theme from storage to: dark entry.bundle:91745:21
+13:38:35.903 Retrieved data for key: budget_tracker_accounts 
+Array []
+entry.bundle:222664:15
+13:38:35.903 Retrieving data for key: budget_tracker_transactions entry.bundle:222654:15
+13:38:35.903 Retrieved data for key: budget_tracker_transactions 
+Array []
+entry.bundle:222664:15
+13:38:35.903 Retrieving data for key: budget_tracker_categories entry.bundle:222654:15
+13:38:35.903 Retrieved data for key: budget_tracker_categories 
+Array []
+entry.bundle:222664:15
+13:38:35.903 Retrieving data for key: budget_tracker_budgets entry.bundle:222654:15
+13:38:35.903 Retrieved data for key: budget_tracker_budgets 
+Array []
+entry.bundle:222664:15
+13:38:35.903 Retrieving data for key: budget_tracker_rules entry.bundle:222654:15
+13:38:35.903 Retrieved data for key: budget_tracker_rules 
+Array []
+entry.bundle:222664:15
+13:38:35.904 Retrieving data for key: budget_tracker_payees entry.bundle:222654:15
+13:38:35.904 Retrieved data for key: budget_tracker_payees 
+Array []
+entry.bundle:222664:15
+13:38:35.904 Retrieving data for key: budget_tracker_payee_categories entry.bundle:222654:15
+13:38:35.904 Retrieved data for key: budget_tracker_payee_categories 
+Array []
+entry.bundle:222664:15
+13:38:35.904 Retrieving data for key: budget_tracker_reconciliation_sessions entry.bundle:222654:15
+13:38:35.904 Retrieved data for key: budget_tracker_reconciliation_sessions 
+Array []
+entry.bundle:222664:15
+13:38:35.904 Retrieving data for key: budget_tracker_reconciliation_statements entry.bundle:222654:15
+13:38:35.904 Retrieved data for key: budget_tracker_reconciliation_statements 
+Array []
+entry.bundle:222664:15
+13:38:35.904 Retrieving data for key: budget_tracker_net_worth_history entry.bundle:222654:15
+13:38:35.904 Retrieved data for key: budget_tracker_net_worth_history 
+Array []
+entry.bundle:222664:15
+13:38:35.904 Retrieving data for key: budget_tracker_net_worth_settings entry.bundle:222654:15
+13:38:35.904 Retrieved data for key: budget_tracker_net_worth_settings 
+Object { frequency: "monthly", enabled: true, dayOfMonth: 1 }
+entry.bundle:222664:15
+13:38:35.904 Retrieving data for key: budget_tracker_saved_trend_analyses entry.bundle:222654:15
+13:38:35.904 Retrieved data for key: budget_tracker_saved_trend_analyses 
+Array []
+entry.bundle:222664:15
+13:38:35.904 Retrieving data for key: budget_tracker_report_templates entry.bundle:222654:15
+13:38:35.904 Retrieved data for key: budget_tracker_report_templates 
+Array []
+entry.bundle:222664:15
+13:38:35.904 Retrieving data for key: budget_tracker_saved_reports entry.bundle:222654:15
+13:38:35.905 Retrieved data for key: budget_tracker_saved_reports 
+Array []
+entry.bundle:222664:15
+13:38:35.905 Retrieving data for key: budget_tracker_bank_connections entry.bundle:222654:15
+13:38:35.905 Retrieved data for key: budget_tracker_bank_connections 
+Array []
+entry.bundle:222664:15
+13:38:35.905 Retrieving data for key: budget_tracker_bank_institutions entry.bundle:222654:15
+13:38:35.905 Retrieved data for key: budget_tracker_bank_institutions 
+Array []
+entry.bundle:222664:15
+13:38:35.905 Retrieving data for key: budget_tracker_bank_sync_sessions entry.bundle:222654:15
+13:38:35.905 Retrieved data for key: budget_tracker_bank_sync_sessions 
+Array []
+entry.bundle:222664:15
+13:38:35.905 Retrieving data for key: budget_tracker_sync_state entry.bundle:222654:15
+13:38:35.905 Retrieving data for key: budget_tracker_sync_config entry.bundle:222654:15
+13:38:35.905 Retrieving data for key: budget_tracker_sync_provider_auth entry.bundle:222654:15
+13:38:35.913 props.pointerEvents is deprecated. Use style.pointerEvents entry.bundle:39974:15
+13:38:35.995
+Warning: Unknown event handler property `onStartShouldSetResponder`. It will be ignored.
+circle
+Circle@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171081:3
+g
+G@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171205:3
+g
+G@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171205:3
+svg
+Svg@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171268:3
+div
+View<@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=he…
+entry.bundle:3611:33
+13:38:36.002
+Warning: Unknown event handler property `onResponderTerminationRequest`. It will be ignored.
+circle
+Circle@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171081:3
+g
+G@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171205:3
+g
+G@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171205:3
+svg
+Svg@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171268:3
+div
+View<@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engin…
+entry.bundle:3611:33
+13:38:36.007
+Warning: Unknown event handler property `onResponderGrant`. It will be ignored.
+circle
+Circle@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171081:3
+g
+G@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171205:3
+g
+G@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171205:3
+svg
+Svg@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171268:3
+div
+View<@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&tran…
+entry.bundle:3611:33
+13:38:36.013
+Warning: Unknown event handler property `onResponderMove`. It will be ignored.
+circle
+Circle@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171081:3
+g
+G@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171205:3
+g
+G@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171205:3
+svg
+Svg@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171268:3
+div
+View<@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&trans…
+entry.bundle:3611:33
+13:38:36.018
+Warning: Unknown event handler property `onResponderRelease`. It will be ignored.
+circle
+Circle@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171081:3
+g
+G@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171205:3
+g
+G@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171205:3
+svg
+Svg@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171268:3
+div
+View<@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&tr…
+entry.bundle:3611:33
+13:38:36.023
+Warning: Unknown event handler property `onResponderTerminate`. It will be ignored.
+circle
+Circle@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171081:3
+g
+G@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171205:3
+g
+G@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171205:3
+svg
+Svg@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app&unstable_transformProfile=hermes-stable:171268:3
+div
+View<@http://localhost:8083/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&transform.engine=hermes&…
+entry.bundle:3611:33
+13:38:36.113 TouchableMixin is deprecated. Please use Pressable. entry.bundle:39974:15
+13:38:36.150 Saving theme to storage: dark entry.bundle:91763:17
+13:38:36.150 Storing data for key: budget_tracker_accounts 
+Array []
+entry.bundle:222642:15
+13:38:36.150 Storing data for key: budget_tracker_transactions 
+Array []
+entry.bundle:222642:15
+13:38:36.150 Storing data for key: budget_tracker_categories 
+Array []
+entry.bundle:222642:15
+13:38:36.150 Storing data for key: budget_tracker_budgets 
+Array []
+entry.bundle:222642:15
+13:38:36.150 Storing data for key: budget_tracker_rules 
+Array []
+entry.bundle:222642:15
+13:38:36.150 Storing data for key: budget_tracker_payees 
+Array []
+entry.bundle:222642:15
+13:38:36.150 Storing data for key: budget_tracker_payee_categories 
+Array []
+entry.bundle:222642:15
+13:38:36.151 Storing data for key: budget_tracker_reconciliation_sessions 
+Array []
+entry.bundle:222642:15
+13:38:36.151 Storing data for key: budget_tracker_reconciliation_statements 
+Array []
+entry.bundle:222642:15
+13:38:36.151 Storing data for key: budget_tracker_net_worth_history 
+Array []
+entry.bundle:222642:15
+13:38:36.151 Storing data for key: budget_tracker_net_worth_settings 
+Object { frequency: "monthly", enabled: true, dayOfMonth: 1 }
+entry.bundle:222642:15
+13:38:36.151 Storing data for key: budget_tracker_saved_trend_analyses 
+Array []
+entry.bundle:222642:15
+13:38:36.151 Storing data for key: budget_tracker_report_templates 
+Array []
+entry.bundle:222642:15
+13:38:36.151 Storing data for key: budget_tracker_saved_reports 
+Array []
+entry.bundle:222642:15
+13:38:36.151 Storing data for key: budget_tracker_bank_connections 
+Array []
+entry.bundle:222642:15
+13:38:36.151 Storing data for key: budget_tracker_bank_institutions 
+Array []
+entry.bundle:222642:15
+13:38:36.151 Storing data for key: budget_tracker_bank_sync_sessions 
+Array []
+entry.bundle:222642:15
+13:38:36.157 Theme saved successfully entry.bundle:91764:104
+13:38:36.157 Successfully stored data for key: budget_tracker_accounts entry.bundle:222645:15
+13:38:36.157 Successfully stored data for key: budget_tracker_transactions entry.bundle:222645:15
+13:38:36.157 Successfully stored data for key: budget_tracker_categories entry.bundle:222645:15
+13:38:36.157 Successfully stored data for key: budget_tracker_budgets entry.bundle:222645:15
+13:38:36.157 Successfully stored data for key: budget_tracker_rules entry.bundle:222645:15
+13:38:36.157 Successfully stored data for key: budget_tracker_payees entry.bundle:222645:15
+13:38:36.157 Successfully stored data for key: budget_tracker_payee_categories entry.bundle:222645:15
+13:38:36.157 Successfully stored data for key: budget_tracker_reconciliation_sessions entry.bundle:222645:15
+13:38:36.157 Successfully stored data for key: budget_tracker_reconciliation_statements entry.bundle:222645:15
+13:38:36.157 Successfully stored data for key: budget_tracker_net_worth_history entry.bundle:222645:15
+13:38:36.157 Successfully stored data for key: budget_tracker_net_worth_settings entry.bundle:222645:15
+13:38:36.157 Successfully stored data for key: budget_tracker_saved_trend_analyses entry.bundle:222645:15
+13:38:36.157 Successfully stored data for key: budget_tracker_report_templates entry.bundle:222645:15
+13:38:36.157 Successfully stored data for key: budget_tracker_saved_reports entry.bundle:222645:15
+13:38:36.158 Successfully stored data for key: budget_tracker_bank_connections entry.bundle:222645:15
+13:38:36.158 Successfully stored data for key: budget_tracker_bank_institutions entry.bundle:222645:15
+13:38:36.158 Successfully stored data for key: budget_tracker_bank_sync_sessions entry.bundle:222645:15

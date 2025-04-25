@@ -14,6 +14,10 @@ import FileSelectStep from './FileSelectStep';
 import ColumnMappingStep from './ColumnMappingStep';
 import ImportConfirmationStep from './ImportConfirmationStep';
 import ImportSuccessStep from './ImportSuccessStep';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
+import { ThemedText, ThemedContainer, ThemedButton } from '@/components/themed';
 
 // Import source types
 type ImportSource = 'file' | 'bank';
@@ -27,6 +31,8 @@ interface ImportStats {
 
 const ImportWizard = () => {
   const { state, dispatch } = useAppContext();
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const [step, setStep] = useState(1);
   const [importSource, setImportSource] = useState<ImportSource | null>(null);
   const [fileData, setFileData] = useState<ImportData | null>(null);
@@ -492,96 +498,84 @@ const ImportWizard = () => {
 
   // Render source selection step
   const renderSourceSelectionStep = () => (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Select Import Source</Text>
-      <Text style={styles.stepDescription}>
-        Choose where you want to import transactions from
-      </Text>
+    <ThemedContainer>
+      <ThemedText variant="title" style={styles.stepTitle} monospace={true}>
+        Import Transactions
+      </ThemedText>
+      <ThemedText style={styles.stepDescription}>
+        Select a source for importing transactions
+      </ThemedText>
       
-      <TouchableOpacity
-        style={styles.sourceOption}
-        onPress={() => handleSourceSelect('file')}
-      >
-        <Ionicons name="document-outline" size={32} color="#2196F3" />
-        <View style={styles.sourceOptionTextContainer}>
-          <Text style={styles.sourceOptionTitle}>Import from CSV File</Text>
-          <Text style={styles.sourceOptionDescription}>
-            Import transactions from a CSV file exported from your bank or financial software
-          </Text>
-        </View>
-        <Ionicons name="chevron-forward" size={24} color="#757575" />
-      </TouchableOpacity>
-      
-      <TouchableOpacity
-        style={styles.sourceOption}
-        onPress={() => handleSourceSelect('bank')}
-        disabled={bankConnections.length === 0}
-      >
-        <Ionicons name="wallet-outline" size={32} color={bankConnections.length === 0 ? "#9E9E9E" : "#2196F3"} />
-        <View style={styles.sourceOptionTextContainer}>
-          <Text style={[styles.sourceOptionTitle, bankConnections.length === 0 && styles.disabledText]}>
-            Import from Bank Connection
-          </Text>
-          <Text style={[styles.sourceOptionDescription, bankConnections.length === 0 && styles.disabledText]}>
-            {bankConnections.length === 0
-              ? "No bank connections available. Add a connection in the Connections tab."
-              : "Import transactions directly from your connected bank accounts"}
-          </Text>
-        </View>
-        <Ionicons name="chevron-forward" size={24} color={bankConnections.length === 0 ? "#9E9E9E" : "#757575"} />
-      </TouchableOpacity>
-    </View>
+      <View style={styles.optionsContainer}>
+        <TouchableOpacity
+          style={styles.optionButton}
+          onPress={() => handleSourceSelect('file')}
+        >
+          <Ionicons name="document-outline" size={36} color={theme.colors.primary} />
+          <ThemedText style={styles.optionLabel}>Import from file</ThemedText>
+          <ThemedText variant="caption">
+            CSV, OFX, or QFX files
+          </ThemedText>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={styles.optionButton}
+          onPress={() => handleSourceSelect('bank')}
+        >
+          <Ionicons name="business-outline" size={36} color={theme.colors.primary} />
+          <ThemedText style={styles.optionLabel}>Connect to bank</ThemedText>
+          <ThemedText variant="caption">
+            Directly import from your bank
+          </ThemedText>
+        </TouchableOpacity>
+      </View>
+    </ThemedContainer>
   );
   
   // Render bank connection selection step
   const renderConnectionSelectionStep = () => (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Select Bank Connection</Text>
-      <Text style={styles.stepDescription}>
-        Choose which bank connection to import transactions from
-      </Text>
+    <ThemedContainer>
+      <ThemedText variant="title" style={styles.stepTitle} monospace={true}>
+        Select Bank Connection
+      </ThemedText>
       
-      <FlatList
-        data={bankConnections}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.connectionItem,
-              item.status !== 'connected' && styles.disabledConnectionItem
-            ]}
-            onPress={() => handleConnectionSelect(item)}
-            disabled={item.status !== 'connected'}
+      {bankConnections.length === 0 ? (
+        <View style={styles.emptyState}>
+          <ThemedText style={styles.emptyStateText}>
+            No bank connections found. Add a connection first.
+          </ThemedText>
+          <ThemedButton 
+            mode="contained"
+            onPress={() => {/* Navigate to add connection screen */}}
           >
-            <Text style={styles.connectionName}>{item.institutionName}</Text>
-            <Text style={[
-              styles.connectionStatus,
-              item.status === 'connected' ? styles.connectedStatus : styles.disconnectedStatus
-            ]}>
-              {item.status === 'connected' ? 'Connected' : item.status}
-            </Text>
-            {item.status === 'connected' && (
-              <Text style={styles.connectionDetails}>
-                {item.connectedAccountIds.length} account(s) • Last synced: {
-                  item.lastSynced
-                    ? new Date(item.lastSynced).toLocaleDateString()
-                    : 'Never'
-                }
-              </Text>
-            )}
-          </TouchableOpacity>
-        )}
-        contentContainerStyle={styles.connectionsList}
-      />
+            Add Bank Connection
+          </ThemedButton>
+        </View>
+      ) : (
+        <FlatList
+          data={bankConnections}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.listItem}
+              onPress={() => handleConnectionSelect(item)}
+            >
+              <ThemedText style={styles.listItemTitle}>{item.institutionName}</ThemedText>
+              <ThemedText style={styles.listItemSubtitle}>
+                {item.connectedAccountIds.length} {item.connectedAccountIds.length === 1 ? 'account' : 'accounts'}
+              </ThemedText>
+              <Ionicons name="chevron-forward" size={20} color={theme.colors.primary} />
+            </TouchableOpacity>
+          )}
+        />
+      )}
       
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => setStep(1)}
-      >
-        <Ionicons name="arrow-back" size={20} color="#2196F3" />
-        <Text style={styles.backButtonText}>Back to Import Options</Text>
-      </TouchableOpacity>
-    </View>
+      <View style={styles.buttonsContainer}>
+        <ThemedButton onPress={() => setStep(1)}>
+          Back
+        </ThemedButton>
+      </View>
+    </ThemedContainer>
   );
   
   // Render account selection step
@@ -589,11 +583,13 @@ const ImportWizard = () => {
     if (!selectedConnection) return null;
     
     return (
-      <View style={styles.stepContainer}>
-        <Text style={styles.stepTitle}>Select Account</Text>
-        <Text style={styles.stepDescription}>
+      <ThemedContainer>
+        <ThemedText variant="title" style={styles.stepTitle} monospace={true}>
+          Select Account
+        </ThemedText>
+        <ThemedText style={styles.stepDescription}>
           Choose which account to import transactions from
-        </Text>
+        </ThemedText>
         
         <FlatList
           data={selectedConnection.connectedAccountIds}
@@ -607,13 +603,13 @@ const ImportWizard = () => {
                 style={styles.accountItem}
                 onPress={() => handleAccountSelect(item)}
               >
-                <Text style={styles.accountName}>
+                <ThemedText style={styles.accountName}>
                   {account ? account.name : `Account ${item.substring(0, 8)}`}
-                </Text>
+                </ThemedText>
                 {account && (
-                  <Text style={styles.accountBalance}>
+                  <ThemedText style={styles.accountBalance}>
                     Balance: ${account.balance.toFixed(2)}
-                  </Text>
+                  </ThemedText>
                 )}
               </TouchableOpacity>
             );
@@ -621,24 +617,24 @@ const ImportWizard = () => {
           contentContainerStyle={styles.accountsList}
         />
         
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => setStep(2)}
-        >
-          <Ionicons name="arrow-back" size={20} color="#2196F3" />
-          <Text style={styles.backButtonText}>Back to Connections</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.buttonsContainer}>
+          <ThemedButton onPress={() => setStep(2)}>
+            Back
+          </ThemedButton>
+        </View>
+      </ThemedContainer>
     );
   };
 
   // Render account selection step for CSV
   const renderCsvAccountSelectionStep = () => (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Select Account</Text>
-      <Text style={styles.stepDescription}>
+    <ThemedContainer>
+      <ThemedText variant="title" style={styles.stepTitle} monospace={true}>
+        Select Account
+      </ThemedText>
+      <ThemedText style={styles.stepDescription}>
         Choose which account to import these transactions into
-      </Text>
+      </ThemedText>
       <FlatList
         data={state.accounts}
         keyExtractor={item => item.id}
@@ -650,25 +646,26 @@ const ImportWizard = () => {
               setStep(5);
             }}
           >
-            <Text style={styles.accountName}>{item.name}</Text>
-            <Text style={styles.accountBalance}>Balance: ${item.balance.toFixed(2)}</Text>
+            <ThemedText style={styles.accountName}>{item.name}</ThemedText>
+            <ThemedText style={styles.accountBalance}>Balance: ${item.balance.toFixed(2)}</ThemedText>
           </TouchableOpacity>
         )}
         contentContainerStyle={styles.accountsList}
       />
-      <TouchableOpacity style={styles.backButton} onPress={() => setStep(3)}>
-        <Ionicons name="arrow-back" size={20} color="#2196F3" />
-        <Text style={styles.backButtonText}>Back to Mapping</Text>
-      </TouchableOpacity>
-    </View>
+      <View style={styles.buttonsContainer}>
+        <ThemedButton onPress={() => setStep(3)}>
+          Back
+        </ThemedButton>
+      </View>
+    </ThemedContainer>
   );
   
   // Render loading overlay
   const renderLoadingOverlay = () => (
     <View style={styles.loadingOverlay}>
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2196F3" />
-        <Text style={styles.loadingText}>Importing transactions...</Text>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <ThemedText style={styles.loadingText}>Loading...</ThemedText>
       </View>
     </View>
   );
@@ -678,15 +675,15 @@ const ImportWizard = () => {
     if (__DEV__) {
       return (
         <View style={styles.debugContainer}>
-          <Text style={styles.debugTitle}>Debug Info:</Text>
-          <Text style={styles.debugText}>Current step: {step}</Text>
-          <Text style={styles.debugText}>Import source: {importSource}</Text>
-          <Text style={styles.debugText}>File format: {fileFormat}</Text>
-          <Text style={styles.debugText}>Has file data: {fileData ? 'Yes' : 'No'}</Text>
+          <ThemedText style={styles.debugTitle}>Debug Info:</ThemedText>
+          <ThemedText style={styles.debugText}>Current step: {step}</ThemedText>
+          <ThemedText style={styles.debugText}>Import source: {importSource}</ThemedText>
+          <ThemedText style={styles.debugText}>File format: {fileFormat}</ThemedText>
+          <ThemedText style={styles.debugText}>Has file data: {fileData ? 'Yes' : 'No'}</ThemedText>
           {fileData && (
             <>
-              <Text style={styles.debugText}>Headers: {fileData.headers?.length || 0}</Text>
-              <Text style={styles.debugText}>Preview rows: {fileData.preview?.length || 0}</Text>
+              <ThemedText style={styles.debugText}>Headers: {fileData.headers?.length || 0}</ThemedText>
+              <ThemedText style={styles.debugText}>Preview rows: {fileData.preview?.length || 0}</ThemedText>
             </>
           )}
         </View>
@@ -709,8 +706,8 @@ const ImportWizard = () => {
       
       {step === 3 && importSource === 'file' && fileData && fileFormat === 'csv' && (
         <ColumnMappingStep
-          data={fileData.preview || []}
           headers={fileData.headers || []}
+          data={fileData.preview || []}
           onMappingComplete={handleColumnMapping}
           onCancel={() => setStep(1)}
         />
@@ -720,29 +717,16 @@ const ImportWizard = () => {
       
       {step === 4 && (
         <ImportConfirmationStep
-          data={importSource === 'file' ? fileData?.preview || [] : []}
+          data={fileData?.preview || []}
           onConfirm={handleImport}
-          onCancel={() => setStep(importSource === 'file' ? 3 : 3)}
+          onCancel={() => setStep(3)}
           importSource={importSource}
-          bankName={selectedConnection?.institutionName}
-          accountId={csvAccountSelection || selectedAccount}
           fileFormat={fileFormat}
+          accountId={selectedAccount || csvAccountSelection || ''}
         />
       )}
       
-      {step === 5 && (
-        <ImportConfirmationStep
-          data={importSource === 'file' ? fileData?.preview || [] : []}
-          onConfirm={handleImport}
-          onCancel={() => setStep(importSource === 'file' ? 4 : 3)}
-          importSource={importSource}
-          bankName={selectedConnection?.institutionName}
-          accountId={csvAccountSelection || selectedAccount}
-          fileFormat={fileFormat}
-        />
-      )}
-      
-      {step === 6 && (
+      {step === 5 && importStats && (
         <ImportSuccessStep
           stats={importStats}
           importSource={importSource}
@@ -753,159 +737,91 @@ const ImportWizard = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20
-  },
-  stepContainer: {
-    flex: 1,
+    backgroundColor: theme.colors.background,
   },
   stepTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#212121',
+    marginBottom: 12,
+    textAlign: 'center',
   },
   stepDescription: {
-    fontSize: 16,
-    color: '#757575',
     marginBottom: 24,
+    textAlign: 'center',
   },
-  sourceOption: {
+  optionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 16,
+  },
+  optionButton: {
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: theme.colors.surface,
+    width: '45%',
+    shadowColor: theme.colors.text,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  optionLabel: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 8,
+    marginBottom: 4,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  listItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 8,
     padding: 16,
-    marginBottom: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
   },
-  sourceOptionTextContainer: {
+  listItemTitle: {
     flex: 1,
-    marginLeft: 16,
+    fontWeight: '600',
+  },
+  listItemSubtitle: {
     marginRight: 8,
   },
-  sourceOptionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#212121',
-    marginBottom: 4,
-  },
-  sourceOptionDescription: {
-    fontSize: 14,
-    color: '#757575',
-  },
-  disabledText: {
-    color: '#9E9E9E',
-  },
-  connectionsList: {
-    marginTop: 8,
-  },
-  connectionItem: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
-  },
-  disabledConnectionItem: {
-    opacity: 0.6,
-  },
-  connectionName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#212121',
-    marginBottom: 4,
-  },
-  connectionStatus: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  connectedStatus: {
-    color: '#4CAF50',
-  },
-  disconnectedStatus: {
-    color: '#F44336',
-  },
-  connectionDetails: {
-    fontSize: 14,
-    color: '#757575',
-  },
-  accountsList: {
-    marginTop: 8,
-  },
-  accountItem: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
-  },
-  accountName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#212121',
-    marginBottom: 4,
-  },
-  accountBalance: {
-    fontSize: 14,
-    color: '#757575',
-  },
-  backButton: {
+  buttonsContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 16,
-    padding: 8,
+    justifyContent: 'space-between',
+    marginTop: 24,
   },
-  backButtonText: {
-    fontSize: 16,
-    color: '#2196F3',
-    marginLeft: 8,
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  emptyStateText: {
+    marginBottom: 16,
+    textAlign: 'center',
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1000,
   },
   loadingContainer: {
-    backgroundColor: 'white',
-    borderRadius: 8,
     padding: 24,
+    borderRadius: 8,
+    backgroundColor: theme.colors.card,
     alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
   },
   loadingText: {
-    fontSize: 16,
-    color: '#212121',
-    marginTop: 16,
+    marginTop: 8,
   },
-  // Debug styles
   debugContainer: {
+    margin: 16,
     padding: 8,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme.colors.surface,
     borderRadius: 4,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#ddd',
   },
   debugTitle: {
     fontWeight: 'bold',
@@ -914,10 +830,33 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   debugText: {
-    fontSize: 12,
-    color: '#666',
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-  }
+    fontSize: 10,
+  },
+  accountsList: {
+    marginTop: 8,
+  },
+  accountItem: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+    elevation: 2,
+    shadowColor: theme.colors.text,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  accountName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+    marginBottom: 4,
+  },
+  accountBalance: {
+    fontSize: 14,
+    color: theme.colors.text,
+  },
 });
 
 export default ImportWizard;

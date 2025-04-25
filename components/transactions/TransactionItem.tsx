@@ -1,9 +1,13 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { Transaction, TransactionSplit } from '@/types/transaction';
+import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
+import { Transaction } from '@/types/transaction';
 import { formatCurrency, formatDate } from '@/utils/dateUtils';
 import { useAppContext } from '@/context/AppContext';
 import { ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Check, CheckCircle2 } from 'lucide-react-native';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { ThemedText } from '@/components/themed';
+import { Theme } from '@/context/theme';
 
 interface TransactionItemProps {
   transaction: Transaction;
@@ -12,6 +16,7 @@ interface TransactionItemProps {
 
 export default function TransactionItem({ transaction, onPress }: TransactionItemProps) {
   const { state } = useAppContext();
+  const theme = useAppTheme();
   
   // Find category for this transaction
   const category = transaction.isSplit
@@ -28,34 +33,36 @@ export default function TransactionItem({ transaction, onPress }: TransactionIte
         return {
           ...split,
           name: cat?.name || 'Uncategorized',
-          color: cat?.color || '#E5E5EA'
+          color: cat?.color || theme.colors.textSecondary
         };
       })
     : [];
   
+  const styles = useThemedStyles(createStyles);
+  
   const getTransactionIcon = () => {
     switch (transaction.type) {
       case 'income':
-        return <ArrowDownLeft size={18} color="#34C759" />;
+        return <ArrowDownLeft size={18} color={theme.colors.success} />;
       case 'expense':
-        return <ArrowUpRight size={18} color="#FF3B30" />;
+        return <ArrowUpRight size={18} color={theme.colors.error} />;
       case 'transfer':
-        return <ArrowLeftRight size={18} color="#5856D6" />;
+        return <ArrowLeftRight size={18} color={theme.colors.secondary} />;
       default:
-        return <ArrowUpRight size={18} color="#FF3B30" />;
+        return <ArrowUpRight size={18} color={theme.colors.error} />;
     }
   };
 
   const getAmountColor = () => {
     switch (transaction.type) {
       case 'income':
-        return '#34C759';
+        return theme.colors.success;
       case 'expense':
-        return '#FF3B30';
+        return theme.colors.error;
       case 'transfer':
-        return '#5856D6';
+        return theme.colors.secondary;
       default:
-        return '#000';
+        return theme.colors.text;
     }
   };
 
@@ -79,35 +86,48 @@ export default function TransactionItem({ transaction, onPress }: TransactionIte
       <View style={styles.leftSection}>
         <View style={[
           styles.categoryIcon,
-          { backgroundColor: category?.color || '#E5E5EA' }
+          { backgroundColor: category?.color || theme.colors.textSecondary }
         ]}>
           {getTransactionIcon()}
         </View>
         
         <View style={styles.infoContainer}>
-          <Text style={styles.payee} numberOfLines={1}>
+          <Text 
+            style={[styles.payee, { color: theme.colors.text }]} 
+            numberOfLines={1}
+          >
             {transaction.payee}
           </Text>
           
           <View style={styles.detailsRow}>
-            <Text style={styles.date}>
+            <Text 
+              style={[styles.date, { color: theme.colors.textSecondary }]}
+            >
               {formatDate(new Date(transaction.date))}
             </Text>
             
             {transaction.isSplit ? (
               <View style={styles.splitIndicator}>
-                <Text style={styles.splitText}>Split</Text>
+                <Text style={[styles.splitText, { color: theme.colors.onPrimary }]}>
+                  Split
+                </Text>
               </View>
             ) : category && (
               <View style={styles.categoryPill}>
-                <Text style={styles.categoryText} numberOfLines={1}>
+                <Text 
+                  style={[styles.categoryText, { color: theme.colors.textSecondary }]} 
+                  numberOfLines={1}
+                >
                   {category.name}
                 </Text>
               </View>
             )}
             
             {account && (
-              <Text style={styles.accountName} numberOfLines={1}>
+              <Text 
+                style={[styles.accountName, { color: theme.colors.textSecondary }]} 
+                numberOfLines={1}
+              >
                 {account.name}
               </Text>
             )}
@@ -123,13 +143,17 @@ export default function TransactionItem({ transaction, onPress }: TransactionIte
         
         {transaction.isReconciled ? (
           <View style={styles.reconciledIndicator}>
-            <CheckCircle2 size={12} color="#5856D6" />
-            <Text style={styles.reconciledText}>Reconciled</Text>
+            <CheckCircle2 size={12} color={theme.colors.secondary} />
+            <Text style={[styles.reconciledText, { color: theme.colors.secondary }]}>
+              Reconciled
+            </Text>
           </View>
         ) : transaction.isCleared && (
           <View style={styles.clearedIndicator}>
-            <Check size={12} color="#34C759" />
-            <Text style={styles.clearedText}>Cleared</Text>
+            <Check size={12} color={theme.colors.success} />
+            <Text style={[styles.clearedText, { color: theme.colors.success }]}>
+              Cleared
+            </Text>
           </View>
         )}
       </View>
@@ -137,9 +161,9 @@ export default function TransactionItem({ transaction, onPress }: TransactionIte
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   splitIndicator: {
-    backgroundColor: '#5856D6',
+    backgroundColor: theme.colors.secondary,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
@@ -147,7 +171,6 @@ const styles = StyleSheet.create({
   },
   splitText: {
     fontSize: 12,
-    color: 'white',
     fontWeight: '500',
   },
   container: {
@@ -156,9 +179,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    borderBottomColor: theme.colors.border,
   },
   leftSection: {
     flexDirection: 'row',
@@ -179,7 +202,6 @@ const styles = StyleSheet.create({
   payee: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#000',
     marginBottom: 4,
   },
   detailsRow: {
@@ -188,11 +210,10 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 12,
-    color: '#8E8E93',
     marginRight: 8,
   },
   categoryPill: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
@@ -200,11 +221,9 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: 12,
-    color: '#8E8E93',
   },
   accountName: {
     fontSize: 12,
-    color: '#8E8E93',
   },
   rightSection: {
     alignItems: 'flex-end',
@@ -220,7 +239,6 @@ const styles = StyleSheet.create({
   },
   clearedText: {
     fontSize: 12,
-    color: '#34C759',
     marginLeft: 2,
   },
   reconciledIndicator: {
@@ -229,7 +247,6 @@ const styles = StyleSheet.create({
   },
   reconciledText: {
     fontSize: 12,
-    color: '#5856D6',
     marginLeft: 2,
   },
 });

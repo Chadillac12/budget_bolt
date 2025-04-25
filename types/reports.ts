@@ -190,7 +190,7 @@ export const DEFAULT_REPORT_TEMPLATES: ReportTemplate[] = [
     description: 'Summary of expenses grouped by category for the current month',
     type: ReportType.EXPENSE,
     isDefault: true,
-    icon: 'calendar',
+    icon: 'calendar-month',
     dateRange: {
       startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
       endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
@@ -220,7 +220,7 @@ export const DEFAULT_REPORT_TEMPLATES: ReportTemplate[] = [
     description: 'Comparison of income and expenses over time',
     type: ReportType.CUSTOM,
     isDefault: true,
-    icon: 'trending-up',
+    icon: 'chart-line',
     dateRange: {
       startDate: new Date(new Date().getFullYear(), new Date().getMonth() - 5, 1),
       endDate: new Date(),
@@ -247,10 +247,10 @@ export const DEFAULT_REPORT_TEMPLATES: ReportTemplate[] = [
   {
     id: 'category-spending',
     name: 'Category Spending',
-    description: 'Detailed breakdown of spending by category',
+    description: 'Analyse spending distribution across different categories.',
     type: ReportType.CATEGORY,
     isDefault: true,
-    icon: 'pie-chart',
+    icon: 'chart-pie',
     dateRange: {
       startDate: new Date(new Date().getFullYear(), new Date().getMonth() - 2, 1),
       endDate: new Date(),
@@ -278,10 +278,10 @@ export const DEFAULT_REPORT_TEMPLATES: ReportTemplate[] = [
   {
     id: 'payee-analysis',
     name: 'Payee Analysis',
-    description: 'Analysis of spending by payee',
+    description: 'Understand spending patterns associated with specific payees.',
     type: ReportType.PAYEE,
     isDefault: true,
-    icon: 'users',
+    icon: 'account-group',
     dateRange: {
       startDate: new Date(new Date().getFullYear(), new Date().getMonth() - 5, 1),
       endDate: new Date(),
@@ -311,7 +311,7 @@ export const DEFAULT_REPORT_TEMPLATES: ReportTemplate[] = [
     description: 'Comparison of budgeted vs. actual spending by category',
     type: ReportType.BUDGET,
     isDefault: true,
-    icon: 'target',
+    icon: 'bullseye',
     dateRange: {
       startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
       endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),

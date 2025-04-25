@@ -19,6 +19,9 @@ import { Calendar, DollarSign, Tag, FileText, Check, Wand2, Plus, Search, User }
 import { applyRules } from '@/utils/ruleUtils';
 import { suggestPayee } from '@/utils/payeeUtils';
 import PayeeForm from '@/components/payees/PayeeForm';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 // Using a simple date input approach instead of a dedicated date picker
 
 interface TransactionFormProps {
@@ -36,6 +39,8 @@ export default function TransactionForm({
   onSave,
   onCancel
 }: TransactionFormProps) {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const { state, dispatch } = useAppContext();
   const isEditing = !!transaction;
   
@@ -138,7 +143,6 @@ export default function TransactionForm({
     };
 
     // Apply rules from the app context
-    const { state } = useAppContext();
     const updatedTransaction = applyRules(state.rules, tempTransaction);
 
     // Update the form if a category was assigned
@@ -373,7 +377,7 @@ export default function TransactionForm({
       <View style={styles.formGroup}>
         <Text style={styles.label}>Date</Text>
         <View style={styles.inputContainer}>
-          <Calendar size={16} color="#8E8E93" style={styles.inputIcon} />
+          <Calendar size={16} color={theme.colors.textSecondary} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             value={formData.date ? formData.date.toISOString().split('T')[0] : ''}
@@ -390,7 +394,7 @@ export default function TransactionForm({
           style={styles.payeeSelector}
           onPress={() => setShowPayeeSelector(true)}
         >
-          <User size={16} color="#8E8E93" style={styles.payeeSelectorIcon} />
+          <User size={16} color={theme.colors.textSecondary} style={styles.payeeSelectorIcon} />
           <Text style={styles.payeeSelectorText}>
             {selectedPayee ? selectedPayee.name : formData.payee || 'Select Payee'}
           </Text>
@@ -418,7 +422,7 @@ export default function TransactionForm({
             
             <View style={styles.payeeSearchContainer}>
               <View style={styles.payeeSearchInputContainer}>
-                <Search size={16} color="#8E8E93" style={styles.payeeSearchIcon} />
+                <Search size={16} color={theme.colors.textSecondary} style={styles.payeeSearchIcon} />
                 <TextInput
                   style={styles.payeeSearchInput}
                   value={payeeSearchQuery}
@@ -436,7 +440,7 @@ export default function TransactionForm({
                   setShowPayeeForm(true);
                 }}
               >
-                <Plus size={16} color="white" />
+                <Plus size={16} color={theme.colors.card} />
               </TouchableOpacity>
             </View>
             
@@ -517,7 +521,7 @@ export default function TransactionForm({
       <View style={styles.formGroup}>
         <Text style={styles.label}>Amount</Text>
         <View style={styles.inputContainer}>
-          <DollarSign size={16} color="#8E8E93" style={styles.inputIcon} />
+          <DollarSign size={16} color={theme.colors.textSecondary} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             value={amountText}
@@ -535,7 +539,7 @@ export default function TransactionForm({
           <Switch
             value={formData.isSplit}
             onValueChange={handleToggleSplit}
-            trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+            trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
           />
         </View>
       </View>
@@ -557,7 +561,7 @@ export default function TransactionForm({
             <View 
               style={[
                 styles.categoryIndicator, 
-                { backgroundColor: selectedCategory?.color || '#E5E5EA' }
+                { backgroundColor: selectedCategory?.color || theme.colors.border }
               ]}
             />
             <Text style={styles.selectorText}>
@@ -581,7 +585,7 @@ export default function TransactionForm({
       <View style={styles.formGroup}>
         <Text style={styles.label}>Description</Text>
         <View style={styles.inputContainer}>
-          <FileText size={16} color="#8E8E93" style={styles.inputIcon} />
+          <FileText size={16} color={theme.colors.textSecondary} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             value={formData.description}
@@ -596,7 +600,7 @@ export default function TransactionForm({
       <View style={styles.formGroup}>
         <Text style={styles.label}>Tags</Text>
         <View style={styles.inputContainer}>
-          <Tag size={16} color="#8E8E93" style={styles.inputIcon} />
+          <Tag size={16} color={theme.colors.textSecondary} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Add tags (comma separated)"
@@ -616,7 +620,7 @@ export default function TransactionForm({
           <Switch
             value={formData.isCleared}
             onValueChange={(value) => handleChange('isCleared', value)}
-            trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+            trackColor={{ false: theme.colors.border, true: theme.colors.success }}
           />
         </View>
       </View>
@@ -627,7 +631,7 @@ export default function TransactionForm({
           <Switch
             value={formData.isReconciled}
             onValueChange={(value) => handleChange('isReconciled', value)}
-            trackColor={{ false: '#E5E5EA', true: '#5856D6' }}
+            trackColor={{ false: theme.colors.border, true: theme.colors.secondary }}
           />
         </View>
       </View>
@@ -639,7 +643,7 @@ export default function TransactionForm({
             style={styles.autoCategorizeButton}
             onPress={applyCategorizationRules}
           >
-            <Wand2 size={16} color="white" style={styles.buttonIcon} />
+            <Wand2 size={16} color={theme.colors.card} style={styles.buttonIcon} />
             <Text style={styles.autoCategorizeButtonText}>
               Auto-Categorize
             </Text>
@@ -660,7 +664,7 @@ export default function TransactionForm({
           style={styles.saveButton}
           onPress={handleSubmit}
         >
-          <Check size={16} color="white" style={styles.buttonIcon} />
+          <Check size={16} color={theme.colors.card} style={styles.buttonIcon} />
           <Text style={styles.saveButtonText}>
             {isEditing ? 'Update' : 'Save'}
           </Text>
@@ -670,7 +674,7 @@ export default function TransactionForm({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -686,7 +690,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: theme.colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -697,10 +701,10 @@ const styles = StyleSheet.create({
   payeeSelectorText: {
     flex: 1,
     fontSize: 16,
-    color: '#007AFF',
+    color: theme.colors.primary,
   },
   payeeSelectorModal: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: 12,
     width: '100%',
     maxWidth: 500,
@@ -712,7 +716,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   payeeSelectorTitle: {
     fontSize: 18,
@@ -722,20 +726,20 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   closeButtonText: {
-    color: '#007AFF',
+    color: theme.colors.primary,
     fontSize: 16,
   },
   payeeSearchContainer: {
     flexDirection: 'row',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   payeeSearchInputContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     borderRadius: 8,
     paddingHorizontal: 12,
     marginRight: 12,
@@ -752,23 +756,23 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   manualEntryOption: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   manualEntryText: {
-    color: '#007AFF',
+    color: theme.colors.primary,
     fontSize: 16,
   },
   payeeOption: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   payeeOptionName: {
     fontSize: 16,
@@ -776,7 +780,7 @@ const styles = StyleSheet.create({
   },
   payeeOptionAlias: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
   },
   emptyPayeeList: {
     padding: 16,
@@ -784,17 +788,17 @@ const styles = StyleSheet.create({
   },
   emptyPayeeText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     textAlign: 'center',
   },
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
   },
   header: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   title: {
     fontSize: 20,
@@ -803,7 +807,7 @@ const styles = StyleSheet.create({
   typeSelector: {
     flexDirection: 'row',
     padding: 8,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     borderRadius: 8,
     margin: 16,
   },
@@ -814,8 +818,8 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   activeTypeButton: {
-    backgroundColor: 'white',
-    shadowColor: '#000',
+    backgroundColor: theme.colors.card,
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 1,
@@ -823,10 +827,10 @@ const styles = StyleSheet.create({
   },
   typeButtonText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
   },
   activeTypeButtonText: {
-    color: '#007AFF',
+    color: theme.colors.primary,
     fontWeight: '600',
   },
   formGroup: {
@@ -835,14 +839,14 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginBottom: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: theme.colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
   },
@@ -858,7 +862,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: theme.colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -866,7 +870,7 @@ const styles = StyleSheet.create({
   selectorText: {
     flex: 1,
     fontSize: 16,
-    color: '#007AFF',
+    color: theme.colors.primary,
   },
   categoryIndicator: {
     width: 16,
@@ -884,19 +888,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
+    borderTopColor: theme.colors.border,
   },
   cancelButton: {
     flex: 1,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: theme.colors.border,
     borderRadius: 8,
     marginRight: 8,
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -905,7 +909,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
     padding: 12,
     borderRadius: 8,
     marginLeft: 8,
@@ -914,7 +918,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   saveButtonText: {
-    color: 'white',
+    color: theme.colors.card,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -922,13 +926,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#5856D6',
+    backgroundColor: theme.colors.secondary,
     padding: 12,
     borderRadius: 8,
     marginVertical: 8,
   },
   autoCategorizeButtonText: {
-    color: 'white',
+    color: theme.colors.card,
     fontSize: 16,
     fontWeight: '600',
   },

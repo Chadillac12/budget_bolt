@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
+import { View, FlatList, TouchableOpacity, RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useAppContext } from '@/context/AppContext';
 import AccountCard from '@/components/accounts/AccountCard';
-import { Account, AccountType, AccountClassification, DEFAULT_ACCOUNT_CLASSIFICATIONS } from '@/types/account';
+import { Account, AccountType, AccountClassification } from '@/types/account';
 import { formatCurrency } from '@/utils/dateUtils';
 import { Plus, Filter, TrendingUp, TrendingDown } from 'lucide-react-native';
 import AccountForm from '@/components/accounts/AccountForm';
+import { ThemedScreen, ThemedText, ThemedButton } from '@/components/themed';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 
 export default function AccountsScreen() {
   const { state } = useAppContext();
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [showArchivedAccounts, setShowArchivedAccounts] = useState(false);
@@ -110,60 +116,58 @@ export default function AccountsScreen() {
       ]}
       onPress={() => setSelectedFilter(selectedFilter === type ? null : type)}
     >
-      <Text
-        style={[
-          styles.filterChipText,
-          selectedFilter === type && styles.selectedFilterChipText,
-        ]}
+      <ThemedText
+        style={selectedFilter === type ? styles.selectedFilterChipText : styles.filterChipText}
       >
         {label}
-      </Text>
+      </ThemedText>
     </TouchableOpacity>
   );
 
   return (
-    <View style={styles.container}>
+    <ThemedScreen>
       <StatusBar style="auto" />
       
       {/* Summary Header */}
       <View style={styles.summaryContainer}>
-        <Text style={styles.summaryTitle}>
+        <ThemedText variant="title" style={styles.summaryTitle} monospace={true}>
           {showArchivedAccounts ? 'Archived Accounts' : 'Net Worth'}
-        </Text>
-        <Text style={[
-          styles.summaryAmount,
-          totalBalance < 0 ? styles.negativeBalance : null
-        ]}>
+        </ThemedText>
+        <ThemedText 
+          variant="title" 
+          style={styles.summaryAmount}
+          color={totalBalance < 0 ? theme.colors.error : theme.colors.text}
+        >
           {formatCurrency(totalBalance)}
-        </Text>
+        </ThemedText>
         
         <View style={styles.balanceBreakdown}>
           <View style={styles.balanceItem}>
-            <View style={styles.balanceIconContainer}>
-              <TrendingUp size={14} color="#34C759" />
+            <View style={[styles.balanceIconContainer, { backgroundColor: theme.colors.success + '20' }]}>
+              <TrendingUp size={14} color={theme.colors.success} />
             </View>
-            <Text style={styles.balanceLabel}>Assets</Text>
-            <Text style={styles.balanceValue}>
+            <ThemedText variant="label" style={styles.balanceLabel}>Assets</ThemedText>
+            <ThemedText variant="body" style={styles.balanceValue}>
               {formatCurrency(assetAccounts.reduce((sum, a) => sum + a.balance, 0))}
-            </Text>
+            </ThemedText>
           </View>
           
           <View style={styles.balanceDivider} />
           
           <View style={styles.balanceItem}>
-            <View style={styles.balanceIconContainer}>
-              <TrendingDown size={14} color="#FF3B30" />
+            <View style={[styles.balanceIconContainer, { backgroundColor: theme.colors.error + '20' }]}>
+              <TrendingDown size={14} color={theme.colors.error} />
             </View>
-            <Text style={styles.balanceLabel}>Liabilities</Text>
-            <Text style={styles.balanceValue}>
+            <ThemedText variant="label" style={styles.balanceLabel}>Liabilities</ThemedText>
+            <ThemedText variant="body" style={styles.balanceValue}>
               {formatCurrency(liabilityAccounts.reduce((sum, a) => sum + a.balance, 0))}
-            </Text>
+            </ThemedText>
           </View>
         </View>
         
-        <Text style={styles.summarySubtitle}>
+        <ThemedText variant="caption" style={styles.summarySubtitle} color={theme.colors.textSecondary}>
           {visibleAccounts.length} {visibleAccounts.length === 1 ? 'account' : 'accounts'}
-        </Text>
+        </ThemedText>
       </View>
       
       {/* Classification Filter */}
@@ -171,34 +175,33 @@ export default function AccountsScreen() {
         <TouchableOpacity
           style={[
             styles.classificationButton,
-            classificationFilter === 'asset' && styles.activeClassificationButton
+            classificationFilter === 'asset' && styles.activeAssetButton
           ]}
           onPress={() => toggleClassificationFilter('asset')}
         >
-          <TrendingUp size={16} color={classificationFilter === 'asset' ? '#fff' : '#34C759'} />
-          <Text style={[
-            styles.classificationButtonText,
-            classificationFilter === 'asset' && styles.activeClassificationText
-          ]}>
+          <TrendingUp size={16} color={classificationFilter === 'asset' ? theme.colors.onPrimary : theme.colors.success} />
+          <ThemedText 
+            style={classificationFilter === 'asset' ? styles.activeClassificationText : styles.classificationButtonText}
+            color={classificationFilter === 'asset' ? theme.colors.onPrimary : theme.colors.success}
+          >
             Assets
-          </Text>
+          </ThemedText>
         </TouchableOpacity>
         
         <TouchableOpacity
           style={[
             styles.classificationButton,
-            classificationFilter === 'liability' && styles.activeClassificationButton,
-            styles.liabilityButton
+            classificationFilter === 'liability' && styles.activeLiabilityButton
           ]}
           onPress={() => toggleClassificationFilter('liability')}
         >
-          <TrendingDown size={16} color={classificationFilter === 'liability' ? '#fff' : '#FF3B30'} />
-          <Text style={[
-            styles.classificationButtonText,
-            classificationFilter === 'liability' && styles.activeClassificationText
-          ]}>
+          <TrendingDown size={16} color={classificationFilter === 'liability' ? theme.colors.onPrimary : theme.colors.error} />
+          <ThemedText 
+            style={classificationFilter === 'liability' ? styles.activeClassificationText : styles.classificationButtonText}
+            color={classificationFilter === 'liability' ? theme.colors.onPrimary : theme.colors.error}
+          >
             Liabilities
-          </Text>
+          </ThemedText>
         </TouchableOpacity>
       </View>
       
@@ -218,7 +221,7 @@ export default function AccountsScreen() {
           style={styles.filterButton}
           onPress={() => setShowArchivedAccounts(!showArchivedAccounts)}
         >
-          <Filter size={18} color="#007AFF" />
+          <Filter size={18} color={theme.colors.primary} />
         </TouchableOpacity>
       </View>
       
@@ -241,67 +244,76 @@ export default function AccountsScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>
+            <ThemedText style={styles.emptyStateText}>
               {showArchivedAccounts 
                 ? 'No archived accounts found' 
-                : 'No accounts found'
-              }
-            </Text>
+                : 'No accounts found matching filters'}
+            </ThemedText>
+            {!showArchivedAccounts && (
+              <ThemedButton 
+                mode="contained"
+                onPress={handleAddAccount}
+              >
+                Add Account
+              </ThemedButton>
+            )}
           </View>
         }
       />
       
-      {/* Add Account Button */}
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={handleAddAccount}
-      >
-        <Plus size={24} color="white" />
-      </TouchableOpacity>
+      {/* Floating Action Button */}
+      {!showArchivedAccounts && (
+        <TouchableOpacity 
+          style={styles.fab}
+          onPress={handleAddAccount}
+        >
+          <Plus size={24} color={theme.colors.onPrimary} />
+        </TouchableOpacity>
+      )}
       
       {/* Account Form Modal */}
-      <AccountForm
-        isVisible={showAccountForm}
-        onClose={handleCloseAccountForm}
-        initialAccount={selectedAccount || undefined}
-      />
-    </View>
+      {showAccountForm && (
+        <AccountForm
+          isVisible={showAccountForm}
+          onClose={handleCloseAccountForm}
+          initialAccount={selectedAccount || undefined}
+        />
+      )}
+    </ThemedScreen>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F2F2F7',
-  },
+const createStyles = (theme: Theme) => StyleSheet.create({
   summaryContainer: {
-    backgroundColor: 'white',
-    paddingTop: 20,
-    paddingBottom: 24,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    backgroundColor: theme.colors.surface,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    marginBottom: 16,
   },
   summaryTitle: {
-    fontSize: 16,
-    color: '#8E8E93',
     marginBottom: 4,
   },
   summaryAmount: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#000',
-    marginBottom: 12,
+    marginBottom: 16,
   },
-  negativeBalance: {
-    color: '#FF3B30',
+  summarySubtitle: {
+    textAlign: 'center',
+    marginTop: 4,
   },
   balanceBreakdown: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-    width: '80%',
+    backgroundColor: theme.colors.card,
+    borderRadius: 8,
+    padding: 12,
+    shadowColor: theme.colors.text,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   balanceItem: {
     flex: 1,
@@ -311,128 +323,107 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#F2F2F7',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 4,
   },
   balanceLabel: {
-    fontSize: 12,
-    color: '#8E8E93',
     marginBottom: 2,
   },
   balanceValue: {
-    fontSize: 14,
     fontWeight: '600',
   },
   balanceDivider: {
     width: 1,
-    height: 40,
-    backgroundColor: '#E5E5EA',
-    marginHorizontal: 16,
-  },
-  summarySubtitle: {
-    fontSize: 14,
-    color: '#8E8E93',
+    height: '80%',
+    backgroundColor: theme.colors.border,
+    marginHorizontal: 8,
   },
   classificationFilters: {
     flexDirection: 'row',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    marginHorizontal: 16,
+    marginBottom: 8,
   },
   classificationButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F2F2F7',
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 16,
+    borderRadius: 20,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: '#34C759',
+    borderColor: theme.colors.border,
   },
-  liabilityButton: {
-    borderColor: '#FF3B30',
+  activeAssetButton: {
+    backgroundColor: theme.colors.success,
   },
-  activeClassificationButton: {
-    backgroundColor: '#34C759',
-  },
-  activeClassificationText: {
-    color: 'white',
+  activeLiabilityButton: {
+    backgroundColor: theme.colors.error,
   },
   classificationButtonText: {
     fontSize: 14,
-    fontWeight: '500',
     marginLeft: 4,
+  },
+  activeClassificationText: {
+    fontSize: 14,
+    marginLeft: 4,
+    fontWeight: '600',
   },
   filtersContainer: {
     flexDirection: 'row',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 8,
+    paddingHorizontal: 16,
   },
   filtersScroll: {
-    flexGrow: 1,
+    flex: 1,
   },
   filterChip: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#F2F2F7',
+    paddingVertical: 8,
     borderRadius: 16,
     marginRight: 8,
+    backgroundColor: theme.colors.surface,
   },
   selectedFilterChip: {
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
   },
   filterChipText: {
     fontSize: 14,
-    color: '#8E8E93',
   },
   selectedFilterChipText: {
-    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
   },
   filterButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F2F2F7',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
+    padding: 8,
   },
   listContent: {
-    paddingVertical: 8,
+    paddingHorizontal: 16,
+    paddingBottom: 80, // Extra padding at bottom for FAB
   },
   emptyState: {
-    padding: 40,
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
   },
   emptyStateText: {
-    fontSize: 16,
-    color: '#8E8E93',
-    textAlign: 'center',
+    marginBottom: 16,
   },
-  addButton: {
+  fab: {
     position: 'absolute',
-    right: 20,
-    bottom: 20,
+    bottom: 24,
+    right: 24,
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
+    backgroundColor: theme.colors.primary,
     alignItems: 'center',
-    shadowColor: '#000',
+    justifyContent: 'center',
+    elevation: 5,
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
+    shadowRadius: 3,
+  }
 });

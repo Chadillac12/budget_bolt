@@ -15,6 +15,9 @@ import {
 import { ArrowLeft, ArrowRight, Check, X, AlertCircle, CheckCircle } from 'lucide-react-native';
 import TransactionItem from '@/components/transactions/TransactionItem';
 import { v4 as uuidv4 } from 'uuid';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 
 // Steps in the reconciliation process
 type ReconciliationStep = 
@@ -31,6 +34,8 @@ interface ReconciliationWizardProps {
 
 export default function ReconciliationWizard({ account, onClose }: ReconciliationWizardProps) {
   const { state, dispatch } = useAppContext();
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const [currentStep, setCurrentStep] = useState<ReconciliationStep>('start');
   
   // Statement information
@@ -385,7 +390,7 @@ export default function ReconciliationWizard({ account, onClose }: Reconciliatio
             >
               <View style={styles.checkboxContainer}>
                 {selectedTransactionIds.includes(transaction.id) ? (
-                  <Check size={18} color="#34C759" />
+                  <Check size={18} color={theme.colors.success} />
                 ) : (
                   <View style={styles.emptyCheckbox} />
                 )}
@@ -455,7 +460,7 @@ export default function ReconciliationWizard({ account, onClose }: Reconciliatio
       
       {difference === 0 ? (
         <View style={styles.successContainer}>
-          <CheckCircle size={48} color="#34C759" />
+          <CheckCircle size={48} color={theme.colors.success} />
           <Text style={styles.successText}>Your account is reconciled!</Text>
           <Text style={styles.successSubtext}>
             All cleared transactions match your bank statement.
@@ -463,7 +468,7 @@ export default function ReconciliationWizard({ account, onClose }: Reconciliatio
         </View>
       ) : (
         <View style={styles.warningContainer}>
-          <AlertCircle size={48} color="#FF3B30" />
+          <AlertCircle size={48} color={theme.colors.error} />
           <Text style={styles.warningText}>Reconciliation Difference</Text>
           <Text style={styles.warningSubtext}>
             There is a difference of {formatCurrency(Math.abs(difference))} between your records and the bank statement.
@@ -485,7 +490,7 @@ export default function ReconciliationWizard({ account, onClose }: Reconciliatio
       <Text style={styles.stepTitle}>Reconciliation Complete</Text>
       
       <View style={styles.successContainer}>
-        <CheckCircle size={64} color="#34C759" />
+        <CheckCircle size={64} color={theme.colors.success} />
         <Text style={styles.successText}>Reconciliation Successful!</Text>
         <Text style={styles.successSubtext}>
           Your account has been reconciled successfully.
@@ -535,43 +540,40 @@ export default function ReconciliationWizard({ account, onClose }: Reconciliatio
     <View style={styles.navigationContainer}>
       {currentStep !== 'start' && currentStep !== 'complete' && (
         <TouchableOpacity
-          style={styles.navigationButton}
+          style={styles.navButton}
           onPress={goToPreviousStep}
         >
-          <ArrowLeft size={18} color="#007AFF" />
-          <Text style={styles.navigationButtonText}>Back</Text>
+          <Text style={styles.buttonText}>Back</Text>
         </TouchableOpacity>
       )}
       
       <TouchableOpacity
         style={[
-          styles.navigationButton,
+          styles.navButton,
           styles.primaryButton,
-          currentStep === 'verification' && difference !== 0 && styles.warningButton
+          currentStep === 'verification' && difference !== 0 && styles.dangerButton
         ]}
         onPress={goToNextStep}
       >
         <Text style={[
-          styles.navigationButtonText,
-          styles.primaryButtonText,
-          currentStep === 'verification' && difference !== 0 && styles.warningButtonText
+          styles.buttonText,
+          currentStep === 'verification' && difference !== 0 && styles.buttonDangerText
         ]}>
           {currentStep === 'complete' ? 'Done' : 
            currentStep === 'verification' ? (difference === 0 ? 'Complete' : 'Complete Anyway') : 
            'Next'}
         </Text>
         {currentStep !== 'complete' && (
-          <ArrowRight size={18} color="white" />
+          <ArrowRight size={18} color={theme.colors.onPrimary} />
         )}
       </TouchableOpacity>
       
       {currentStep === 'verification' && (
         <TouchableOpacity
-          style={styles.navigationButton}
+          style={styles.navButton}
           onPress={onClose}
         >
-          <X size={18} color="#FF3B30" />
-          <Text style={[styles.navigationButtonText, styles.cancelButtonText]}>Cancel</Text>
+          <Text style={[styles.buttonText, styles.buttonDangerText]}>Cancel</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -609,10 +611,10 @@ export default function ReconciliationWizard({ account, onClose }: Reconciliatio
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.background,
   },
   content: {
     flex: 1,
@@ -624,23 +626,23 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     marginBottom: 16,
-    color: '#000',
+    color: theme.colors.text,
   },
   accountName: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 16,
-    color: '#007AFF',
+    color: theme.colors.primary,
   },
   infoBox: {
-    backgroundColor: '#E5F1FF',
+    backgroundColor: theme.colors.primaryContainer,
     padding: 16,
     borderRadius: 8,
     marginBottom: 16,
   },
   infoText: {
     fontSize: 14,
-    color: '#0056B3',
+    color: theme.colors.onPrimaryContainer,
     lineHeight: 20,
   },
   instructionsContainer: {
@@ -650,16 +652,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#000',
+    color: theme.colors.text,
   },
   instructionText: {
     fontSize: 14,
-    color: '#333',
+    color: theme.colors.textSecondary,
     marginBottom: 4,
     lineHeight: 20,
   },
   balanceContainer: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.surface,
     padding: 16,
     borderRadius: 8,
     marginBottom: 16,
@@ -669,19 +671,19 @@ const styles = StyleSheet.create({
   },
   balanceLabel: {
     fontSize: 16,
-    color: '#333',
+    color: theme.colors.textSecondary,
   },
   balanceAmount: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000',
+    color: theme.colors.text,
   },
   formGroup: {
     marginBottom: 16,
   },
   formLabel: {
     fontSize: 14,
-    color: '#333',
+    color: theme.colors.textSecondary,
     marginBottom: 8,
   },
   dateRangeContainer: {
@@ -690,25 +692,25 @@ const styles = StyleSheet.create({
   },
   dateInput: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.surface,
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: theme.colors.border,
   },
   dateRangeSeparator: {
     marginHorizontal: 8,
-    color: '#333',
+    color: theme.colors.textSecondary,
   },
   balanceInput: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.surface,
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: theme.colors.border,
   },
   summaryContainer: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.surface,
     padding: 16,
     borderRadius: 8,
     marginBottom: 16,
@@ -720,12 +722,12 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 14,
-    color: '#333',
+    color: theme.colors.textSecondary,
   },
   summaryValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000',
+    color: theme.colors.text,
   },
   transactionListContainer: {
     marginBottom: 16,
@@ -734,11 +736,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#000',
+    color: theme.colors.text,
   },
   transactionList: {
     maxHeight: 300,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.surface,
     borderRadius: 8,
   },
   transactionItem: {
@@ -747,10 +749,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    borderBottomColor: theme.colors.border,
   },
   selectedTransaction: {
-    backgroundColor: '#F2F9FF',
+    backgroundColor: theme.colors.primaryContainer,
   },
   checkboxContainer: {
     marginRight: 12,
@@ -759,14 +761,14 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderWidth: 1,
-    borderColor: '#C7C7CC',
+    borderColor: theme.colors.border,
     borderRadius: 4,
   },
   transactionDetails: {
     flex: 1,
   },
   balanceSummary: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.surface,
     padding: 16,
     borderRadius: 8,
   },
@@ -776,13 +778,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   differenceMismatch: {
-    color: '#FF3B30',
+    color: theme.colors.error,
   },
   differenceMatch: {
-    color: '#34C759',
+    color: theme.colors.success,
   },
   verificationContainer: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.surface,
     padding: 16,
     borderRadius: 8,
     marginBottom: 16,
@@ -794,12 +796,12 @@ const styles = StyleSheet.create({
   },
   verificationLabel: {
     fontSize: 16,
-    color: '#333',
+    color: theme.colors.textSecondary,
   },
   verificationValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: theme.colors.text,
   },
   successContainer: {
     alignItems: 'center',
@@ -809,13 +811,13 @@ const styles = StyleSheet.create({
   successText: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#34C759',
+    color: theme.colors.success,
     marginTop: 16,
     marginBottom: 8,
   },
   successSubtext: {
     fontSize: 14,
-    color: '#333',
+    color: theme.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -827,18 +829,18 @@ const styles = StyleSheet.create({
   warningText: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FF3B30',
+    color: theme.colors.error,
     marginTop: 16,
     marginBottom: 8,
   },
   warningSubtext: {
     fontSize: 14,
-    color: '#333',
+    color: theme.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
   },
   completionSummary: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.surface,
     padding: 16,
     borderRadius: 8,
     marginBottom: 16,
@@ -850,68 +852,64 @@ const styles = StyleSheet.create({
   },
   completionLabel: {
     fontSize: 16,
-    color: '#333',
+    color: theme.colors.textSecondary,
   },
   completionValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: theme.colors.text,
   },
   navigationContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
-    backgroundColor: 'white',
+    borderTopColor: theme.colors.border,
+    padding: 16,
   },
-  navigationButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  navButton: {
+    flex: 1,
     padding: 12,
     borderRadius: 8,
-  },
-  navigationButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#007AFF',
-    marginHorizontal: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   primaryButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
   },
-  primaryButtonText: {
-    color: 'white',
+  secondaryButton: {
+    backgroundColor: theme.colors.warning,
   },
-  warningButton: {
-    backgroundColor: '#FF9500',
+  dangerButton: {
+    backgroundColor: theme.colors.error,
   },
-  warningButtonText: {
-    color: 'white',
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.colors.onPrimary,
   },
-  cancelButtonText: {
-    color: '#FF3B30',
+  buttonDangerText: {
+    color: theme.colors.onError,
   },
   progressContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   progressStep: {
-    flex: 1,
-    height: 4,
-    backgroundColor: '#E5E5EA',
-    marginHorizontal: 2,
-    borderRadius: 2,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: theme.colors.border,
+    marginHorizontal: 4,
   },
   progressStepActive: {
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
   },
   progressStepCurrent: {
-    backgroundColor: '#007AFF',
-    height: 6,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
   },
 });

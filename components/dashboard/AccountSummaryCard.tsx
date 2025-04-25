@@ -4,6 +4,9 @@ import { useRouter } from 'expo-router';
 import { Account, AccountSummary } from '@/types/account';
 import { formatCurrency } from '@/utils/dateUtils';
 import { ArrowUpRight, ArrowDownLeft, ChevronRight } from 'lucide-react-native';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 
 interface AccountSummaryCardProps {
   accounts: Account[];
@@ -11,6 +14,8 @@ interface AccountSummaryCardProps {
 }
 
 export default function AccountSummaryCard({ accounts, summary }: AccountSummaryCardProps) {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const router = useRouter();
   
   const navigateToAccounts = () => {
@@ -44,7 +49,7 @@ export default function AccountSummaryCard({ accounts, summary }: AccountSummary
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
           <View style={styles.statIconContainer}>
-            <ArrowDownLeft size={18} color="#34C759" />
+            <ArrowDownLeft size={18} color={theme.colors.success} />
           </View>
           <View>
             <Text style={styles.statLabel}>Income</Text>
@@ -58,7 +63,7 @@ export default function AccountSummaryCard({ accounts, summary }: AccountSummary
         
         <View style={styles.statItem}>
           <View style={styles.statIconContainer}>
-            <ArrowUpRight size={18} color="#FF3B30" />
+            <ArrowUpRight size={18} color={theme.colors.error} />
           </View>
           <View>
             <Text style={styles.statLabel}>Expenses</Text>
@@ -71,20 +76,20 @@ export default function AccountSummaryCard({ accounts, summary }: AccountSummary
       
       <TouchableOpacity style={styles.viewDetailsButton} onPress={navigateToAccounts}>
         <Text style={styles.viewDetailsText}>View Account Details</Text>
-        <ChevronRight size={16} color="#007AFF" />
+        <ChevronRight size={16} color={theme.colors.primary} />
       </TouchableOpacity>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: 12,
     padding: 16,
     marginHorizontal: 16,
     marginVertical: 8,
-    shadowColor: '#000',
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -99,11 +104,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000',
+    color: theme.colors.text,
   },
   viewAll: {
     fontSize: 14,
-    color: '#007AFF',
+    color: theme.colors.primary,
   },
   balanceContainer: {
     alignItems: 'center',
@@ -111,22 +116,22 @@ const styles = StyleSheet.create({
   },
   balanceLabel: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginBottom: 4,
   },
   balanceValue: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#000',
+    color: theme.colors.text,
     marginBottom: 4,
   },
   accountsCount: {
     fontSize: 13,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
   },
   divider: {
     height: 1,
-    backgroundColor: '#E5E5EA',
+    backgroundColor: theme.colors.border,
     marginVertical: 16,
   },
   statsContainer: {
@@ -142,14 +147,14 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   statLabel: {
     fontSize: 13,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginBottom: 2,
   },
   statValue: {
@@ -157,15 +162,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   incomeValue: {
-    color: '#34C759',
+    color: theme.colors.success,
   },
   expenseValue: {
-    color: '#FF3B30',
+    color: theme.colors.error,
   },
   statDivider: {
     width: 1,
     height: '100%',
-    backgroundColor: '#E5E5EA',
+    backgroundColor: theme.colors.border,
     marginHorizontal: 16,
   },
   viewDetailsButton: {
@@ -174,12 +179,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 12,
     marginTop: 16,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     borderRadius: 8,
   },
   viewDetailsText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: theme.colors.primary,
     marginRight: 4,
     fontWeight: '500',
   },

@@ -9,6 +9,9 @@ import {
   FlatList
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 
 import {
   SyncConflict,
@@ -38,6 +41,8 @@ export default function ConflictResolutionModal({
   onResolve,
   onClose
 }: ConflictResolutionModalProps) {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const [selectedConflict, setSelectedConflict] = useState<SyncConflict<any> | null>(null);
   const [selectedStrategy, setSelectedStrategy] = useState<ConflictResolutionStrategy>(
     ConflictResolutionStrategy.MERGE
@@ -119,7 +124,7 @@ export default function ConflictResolutionModal({
           <Ionicons
             name="alert-circle"
             size={24}
-            color="#FF9800"
+            color={theme.colors.warning}
             style={styles.conflictIcon}
           />
           <View style={styles.conflictInfo}>
@@ -157,7 +162,7 @@ export default function ConflictResolutionModal({
               <Ionicons
                 name={selectedStrategy === ConflictResolutionStrategy.USE_LOCAL ? 'radio-button-on' : 'radio-button-off'}
                 size={20}
-                color={selectedStrategy === ConflictResolutionStrategy.USE_LOCAL ? '#2196F3' : '#757575'}
+                color={selectedStrategy === ConflictResolutionStrategy.USE_LOCAL ? theme.colors.primary : theme.colors.textSecondary}
               />
               <Text style={styles.strategyOptionText}>Use Local Version</Text>
             </TouchableOpacity>
@@ -172,7 +177,7 @@ export default function ConflictResolutionModal({
               <Ionicons
                 name={selectedStrategy === ConflictResolutionStrategy.USE_REMOTE ? 'radio-button-on' : 'radio-button-off'}
                 size={20}
-                color={selectedStrategy === ConflictResolutionStrategy.USE_REMOTE ? '#2196F3' : '#757575'}
+                color={selectedStrategy === ConflictResolutionStrategy.USE_REMOTE ? theme.colors.primary : theme.colors.textSecondary}
               />
               <Text style={styles.strategyOptionText}>Use Remote Version</Text>
             </TouchableOpacity>
@@ -187,7 +192,7 @@ export default function ConflictResolutionModal({
               <Ionicons
                 name={selectedStrategy === ConflictResolutionStrategy.MERGE ? 'radio-button-on' : 'radio-button-off'}
                 size={20}
-                color={selectedStrategy === ConflictResolutionStrategy.MERGE ? '#2196F3' : '#757575'}
+                color={selectedStrategy === ConflictResolutionStrategy.MERGE ? theme.colors.primary : theme.colors.textSecondary}
               />
               <Text style={styles.strategyOptionText}>Merge Changes (Recommended)</Text>
             </TouchableOpacity>
@@ -202,7 +207,7 @@ export default function ConflictResolutionModal({
               <Ionicons
                 name={selectedStrategy === ConflictResolutionStrategy.MANUAL ? 'radio-button-on' : 'radio-button-off'}
                 size={20}
-                color={selectedStrategy === ConflictResolutionStrategy.MANUAL ? '#2196F3' : '#757575'}
+                color={selectedStrategy === ConflictResolutionStrategy.MANUAL ? theme.colors.primary : theme.colors.textSecondary}
               />
               <Text style={styles.strategyOptionText}>Resolve Manually</Text>
             </TouchableOpacity>
@@ -234,7 +239,7 @@ export default function ConflictResolutionModal({
               style={styles.closeButton}
               onPress={onClose}
             >
-              <Ionicons name="close" size={24} color="#757575" />
+              <Ionicons name="close" size={24} color={theme.colors.textSecondary} />
             </TouchableOpacity>
           </View>
           
@@ -245,7 +250,7 @@ export default function ConflictResolutionModal({
           
           {conflicts.length === 0 ? (
             <View style={styles.noConflictsContainer}>
-              <Ionicons name="checkmark-circle" size={48} color="#4CAF50" />
+              <Ionicons name="checkmark-circle" size={48} color={theme.colors.success} />
               <Text style={styles.noConflictsText}>No conflicts to resolve</Text>
             </View>
           ) : (
@@ -270,7 +275,7 @@ export default function ConflictResolutionModal({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -279,13 +284,13 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.surface,
     borderRadius: 8,
     width: '100%',
     maxWidth: 500,
     maxHeight: '80%',
     elevation: 5,
-    shadowColor: '#000',
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -296,12 +301,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: theme.colors.border,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#212121',
+    color: theme.colors.text,
   },
   closeButton: {
     padding: 4,
@@ -309,9 +314,9 @@ const styles = StyleSheet.create({
   modalDescription: {
     padding: 16,
     fontSize: 14,
-    color: '#757575',
+    color: theme.colors.textSecondary,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: theme.colors.border,
   },
   noConflictsContainer: {
     padding: 32,
@@ -320,7 +325,7 @@ const styles = StyleSheet.create({
   },
   noConflictsText: {
     fontSize: 16,
-    color: '#4CAF50',
+    color: theme.colors.success,
     marginTop: 16,
   },
   conflictList: {
@@ -330,20 +335,20 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   conflictItem: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: theme.colors.surfaceVariant,
     borderRadius: 8,
     marginBottom: 16,
     overflow: 'hidden',
   },
   selectedConflictItem: {
     borderWidth: 2,
-    borderColor: '#2196F3',
+    borderColor: theme.colors.primary,
   },
   conflictHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#FFF8E1',
+    backgroundColor: theme.colors.surfaceVariant,
   },
   conflictIcon: {
     marginRight: 12,
@@ -354,39 +359,39 @@ const styles = StyleSheet.create({
   conflictType: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#212121',
+    color: theme.colors.text,
     marginBottom: 4,
   },
   conflictSummary: {
     fontSize: 14,
-    color: '#757575',
+    color: theme.colors.textSecondary,
   },
   conflictDetails: {
     padding: 16,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.surface,
   },
   conflictDetailLabel: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#212121',
+    color: theme.colors.text,
     marginTop: 8,
     marginBottom: 4,
   },
   conflictDetailValue: {
     fontSize: 14,
-    color: '#757575',
+    color: theme.colors.textSecondary,
     marginBottom: 8,
   },
   strategySelector: {
     padding: 16,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: theme.colors.primaryContainer,
     borderTopWidth: 1,
-    borderTopColor: '#BBDEFB',
+    borderTopColor: theme.colors.border,
   },
   strategySelectorLabel: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#212121',
+    color: theme.colors.text,
     marginBottom: 12,
   },
   strategyOption: {
@@ -395,36 +400,36 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   selectedStrategyOption: {
-    backgroundColor: 'rgba(33, 150, 243, 0.1)',
+    backgroundColor: `${theme.colors.primary}20`, // 20% opacity
     borderRadius: 4,
     paddingHorizontal: 8,
   },
   strategyOptionText: {
     fontSize: 14,
-    color: '#212121',
+    color: theme.colors.text,
     marginLeft: 8,
   },
   resolveButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: theme.colors.primary,
     borderRadius: 4,
     padding: 12,
     alignItems: 'center',
     marginTop: 16,
   },
   resolveButtonText: {
-    color: 'white',
+    color: theme.colors.onPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },
   doneButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: theme.colors.success,
     borderRadius: 4,
     padding: 12,
     alignItems: 'center',
     margin: 16,
   },
   doneButtonText: {
-    color: 'white',
+    color: theme.colors.onPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },

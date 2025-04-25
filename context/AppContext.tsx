@@ -11,7 +11,8 @@ import { ReportTemplate, SavedReport } from '@/types/reports'; // Import Report 
 import { BankConnection, BankInstitution, BankSyncSession } from '@/types/bankConnection'; // Import Bank Connection types
 import { SyncState, SyncConfig, StorageProviderAuth } from '@/types/sync'; // Import Sync types
 import { storeData, getData } from '@/utils/storage';
-import { setupSync } from '@/utils/syncUtils'; // Import sync setup function
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 // App state interface
 interface AppState {
@@ -654,15 +655,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Initialize sync system
     const initSync = async () => {
       try {
-        // Setup sync system and get a function to cancel scheduled syncs
-        const cancelSync = await setupSync();
+        // Check if running on web platform
+        if (Platform.OS === 'web') {
+          console.log('Sync system not supported on web platform');
+          return () => {}; // Return empty cleanup function for web
+        }
         
-        // Return cleanup function to cancel scheduled syncs when component unmounts
-        return () => {
-          cancelSync();
-        };
+        // For non-web platforms, we'll just return a no-op function
+        // until the sync system is properly implemented
+        console.log('Sync system initialized with stub implementation');
+        return () => {}; // Return empty cleanup function
       } catch (error) {
         console.error('Failed to initialize sync system:', error);
+        return () => {}; // Return empty cleanup function on error
       }
     };
     

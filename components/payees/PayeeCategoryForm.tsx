@@ -9,6 +9,9 @@ import {
 } from 'react-native';
 import { PayeeCategory } from '@/types/payee';
 import { Check, X } from 'lucide-react-native';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 
 interface PayeeCategoryFormProps {
   category?: PayeeCategory;
@@ -19,11 +22,13 @@ interface PayeeCategoryFormProps {
 /**
  * Form for creating or editing payee categories
  */
-export default function PayeeCategoryForm({ 
-  category, 
-  onSave, 
-  onCancel 
+export default function PayeeCategoryForm({
+  category,
+  onSave,
+  onCancel
 }: PayeeCategoryFormProps) {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const isEditing = !!category;
   
   // Form state
@@ -44,16 +49,16 @@ export default function PayeeCategoryForm({
   // Generate a random color
   function getRandomColor() {
     const colors = [
-      '#FF3B30', // Red
-      '#FF9500', // Orange
+      theme.colors.error, // Red
+      theme.colors.warning, // Orange
       '#FFCC00', // Yellow
-      '#34C759', // Green
+      theme.colors.success, // Green
       '#5AC8FA', // Light Blue
-      '#007AFF', // Blue
-      '#5856D6', // Purple
+      theme.colors.primary, // Blue
+      theme.colors.secondary, // Purple
       '#AF52DE', // Pink
       '#FF2D55', // Rose
-      '#8E8E93', // Gray
+      theme.colors.textSecondary, // Gray
     ];
     
     return colors[Math.floor(Math.random() * colors.length)];
@@ -61,16 +66,16 @@ export default function PayeeCategoryForm({
   
   // Predefined colors for selection
   const colorOptions = [
-    '#FF3B30', // Red
-    '#FF9500', // Orange
+    theme.colors.error, // Red
+    theme.colors.warning, // Orange
     '#FFCC00', // Yellow
-    '#34C759', // Green
+    theme.colors.success, // Green
     '#5AC8FA', // Light Blue
-    '#007AFF', // Blue
-    '#5856D6', // Purple
+    theme.colors.primary, // Blue
+    theme.colors.secondary, // Purple
     '#AF52DE', // Pink
     '#FF2D55', // Rose
-    '#8E8E93', // Gray
+    theme.colors.textSecondary, // Gray
   ];
   
   // Validate the form before saving
@@ -104,7 +109,7 @@ export default function PayeeCategoryForm({
           style={styles.closeButton}
           onPress={onCancel}
         >
-          <X size={24} color="#8E8E93" />
+          <X size={24} color={theme.colors.textSecondary} />
         </TouchableOpacity>
       </View>
       
@@ -145,7 +150,7 @@ export default function PayeeCategoryForm({
         <View 
           style={[
             styles.previewBadge,
-            { backgroundColor: formData.color || '#E5E5EA' }
+            { backgroundColor: formData.color || theme.colors.border }
           ]}
         >
           <Text style={styles.previewText}>{formData.name || 'Category'}</Text>
@@ -165,7 +170,7 @@ export default function PayeeCategoryForm({
           style={styles.saveButton}
           onPress={handleSubmit}
         >
-          <Check size={16} color="white" style={styles.buttonIcon} />
+          <Check size={16} color={theme.colors.card} style={styles.buttonIcon} />
           <Text style={styles.saveButtonText}>
             {isEditing ? 'Update' : 'Save'}
           </Text>
@@ -175,9 +180,9 @@ export default function PayeeCategoryForm({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: 12,
     padding: 16,
     maxWidth: 400,
@@ -201,14 +206,14 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginBottom: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: theme.colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
   },
@@ -230,8 +235,8 @@ const styles = StyleSheet.create({
   },
   selectedColorOption: {
     borderWidth: 3,
-    borderColor: 'white',
-    shadowColor: '#000',
+    borderColor: theme.colors.card,
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
@@ -242,7 +247,7 @@ const styles = StyleSheet.create({
   },
   previewLabel: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginBottom: 8,
   },
   previewBadge: {
@@ -252,7 +257,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   previewText: {
-    color: 'white',
+    color: theme.colors.card,
     fontWeight: '600',
   },
   actionButtons: {
@@ -263,13 +268,13 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: theme.colors.border,
     borderRadius: 8,
     marginRight: 8,
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -278,7 +283,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
     padding: 12,
     borderRadius: 8,
     marginLeft: 8,
@@ -287,7 +292,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   saveButtonText: {
-    color: 'white',
+    color: theme.colors.card,
     fontSize: 16,
     fontWeight: '600',
   },

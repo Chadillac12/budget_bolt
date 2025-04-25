@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { Account, AccountClassification } from '@/types/account';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { Account } from '@/types/account';
 import { formatCurrency } from '@/utils/dateUtils';
 import { Eye, EyeOff, CreditCard, DollarSign, Briefcase, Wallet, TrendingUp, TrendingDown } from 'lucide-react-native';
 import { useAppContext } from '@/context/AppContext';
 import AccountClassificationForm from './AccountClassificationForm';
+import { ThemedCard, ThemedText } from '@/components/themed';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface AccountCardProps {
   account: Account;
@@ -13,6 +15,7 @@ interface AccountCardProps {
 
 export default function AccountCard({ account, onPress }: AccountCardProps) {
   const { dispatch } = useAppContext();
+  const theme = useAppTheme();
   const [showClassificationForm, setShowClassificationForm] = useState(false);
   
   const toggleVisibility = () => {
@@ -27,17 +30,19 @@ export default function AccountCard({ account, onPress }: AccountCardProps) {
   };
   
   const getAccountIcon = () => {
+    const color = account.color || theme.colors.primary;
+    
     switch (account.type) {
       case 'checking':
-        return <DollarSign size={24} color={account.color || '#007AFF'} />;
+        return <DollarSign size={24} color={color} />;
       case 'savings':
-        return <Wallet size={24} color={account.color || '#5856D6'} />;
+        return <Wallet size={24} color={color} />;
       case 'credit':
-        return <CreditCard size={24} color={account.color || '#FF2D55'} />;
+        return <CreditCard size={24} color={color} />;
       case 'investment':
-        return <Briefcase size={24} color={account.color || '#34C759'} />;
+        return <Briefcase size={24} color={color} />;
       default:
-        return <DollarSign size={24} color={account.color || '#007AFF'} />;
+        return <DollarSign size={24} color={color} />;
     }
   };
 
@@ -49,83 +54,85 @@ export default function AccountCard({ account, onPress }: AccountCardProps) {
         onClose={() => setShowClassificationForm(false)}
       />
       
-      <TouchableOpacity
-        style={[styles.card, { borderLeftColor: account.color || '#007AFF' }]}
+      <ThemedCard 
+        borderLeftColor={account.color || theme.colors.primary}
+        style={styles.card}
         onPress={() => onPress(account)}
-        activeOpacity={0.7}
       >
-      <View style={styles.leftContent}>
-        <View style={styles.iconContainer}>
-          {getAccountIcon()}
-        </View>
-        <View style={styles.accountInfo}>
-          <Text style={styles.accountName}>{account.name}</Text>
-          <View style={styles.accountMetaRow}>
-            <Text style={styles.accountType}>
-              {account.type.charAt(0).toUpperCase() + account.type.slice(1)}
-            </Text>
-            <TouchableOpacity
-              onPress={() => setShowClassificationForm(true)}
-            >
-              <View style={[
-                styles.classificationBadge,
-                account.classification === 'asset' ? styles.assetBadge : styles.liabilityBadge,
-                account.excludeFromNetWorth && styles.excludedBadge
-              ]}>
-                {account.classification === 'asset' ? (
-                  <TrendingUp size={12} color="#fff" />
-                ) : (
-                  <TrendingDown size={12} color="#fff" />
-                )}
-                <Text style={styles.classificationText}>
-                  {account.excludeFromNetWorth ? 'Excluded' : account.classification.charAt(0).toUpperCase() + account.classification.slice(1)}
-                </Text>
-              </View>
-            </TouchableOpacity>
+        <View style={styles.leftContent}>
+          <View style={[styles.iconContainer, { backgroundColor: theme.colors.background }]}>
+            {getAccountIcon()}
+          </View>
+          <View style={styles.accountInfo}>
+            <ThemedText variant="subtitle" style={styles.accountName}>
+              {account.name}
+            </ThemedText>
+            <View style={styles.accountMetaRow}>
+              <ThemedText 
+                variant="caption" 
+                color={theme.colors.textSecondary}
+                style={styles.accountType}
+              >
+                {account.type.charAt(0).toUpperCase() + account.type.slice(1)}
+              </ThemedText>
+              <TouchableOpacity
+                onPress={() => setShowClassificationForm(true)}
+              >
+                <View style={[
+                  styles.classificationBadge,
+                  account.classification === 'asset' ? styles.assetBadge : styles.liabilityBadge,
+                  account.excludeFromNetWorth && styles.excludedBadge,
+                  { 
+                    backgroundColor: account.classification === 'asset' 
+                      ? theme.colors.success 
+                      : account.excludeFromNetWorth 
+                        ? theme.colors.textSecondary 
+                        : theme.colors.error
+                  }
+                ]}>
+                  {account.classification === 'asset' ? (
+                    <TrendingUp size={12} color="#fff" />
+                  ) : (
+                    <TrendingDown size={12} color="#fff" />
+                  )}
+                  <ThemedText style={styles.classificationText} color="#fff">
+                    {account.excludeFromNetWorth ? 'Excluded' : account.classification.charAt(0).toUpperCase() + account.classification.slice(1)}
+                  </ThemedText>
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
-      
-      <View style={styles.rightContent}>
-        <Text style={[
-          styles.balance, 
-          account.balance < 0 ? styles.negativeBalance : null
-        ]}>
-          {account.isHidden ? '••••••' : formatCurrency(account.balance, account.currency)}
-        </Text>
         
-        <TouchableOpacity 
-          style={styles.visibilityButton}
-          onPress={toggleVisibility}
-        >
-          {account.isHidden ? (
-            <EyeOff size={18} color="#8E8E93" />
-          ) : (
-            <Eye size={18} color="#8E8E93" />
-          )}
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
+        <View style={styles.rightContent}>
+          <ThemedText 
+            variant="subtitle" 
+            style={styles.balance}
+            color={account.balance < 0 ? theme.colors.error : theme.colors.text}
+          >
+            {account.isHidden ? '••••••' : formatCurrency(account.balance, account.currency)}
+          </ThemedText>
+          
+          <TouchableOpacity 
+            style={styles.visibilityButton}
+            onPress={toggleVisibility}
+          >
+            {account.isHidden ? (
+              <EyeOff size={18} color={theme.colors.textSecondary} />
+            ) : (
+              <Eye size={18} color={theme.colors.textSecondary} />
+            )}
+          </TouchableOpacity>
+        </View>
+      </ThemedCard>
     </>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 8,
-    marginHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    borderLeftWidth: 4,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
   leftContent: {
     flexDirection: 'row',
@@ -135,7 +142,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F2F2F7',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -144,9 +150,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   accountName: {
-    fontSize: 16,
     fontWeight: '600',
-    color: '#000',
   },
   accountMetaRow: {
     flexDirection: 'row',
@@ -154,8 +158,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   accountType: {
-    fontSize: 13,
-    color: '#8E8E93',
     marginRight: 8,
   },
   classificationBadge: {
@@ -165,31 +167,19 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 10,
   },
-  assetBadge: {
-    backgroundColor: '#34C759',
-  },
-  liabilityBadge: {
-    backgroundColor: '#FF3B30',
-  },
-  excludedBadge: {
-    backgroundColor: '#8E8E93',
-  },
+  assetBadge: {},
+  liabilityBadge: {},
+  excludedBadge: {},
   classificationText: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#fff',
     marginLeft: 2,
   },
   rightContent: {
     alignItems: 'flex-end',
   },
   balance: {
-    fontSize: 18,
     fontWeight: '600',
-    color: '#000',
-  },
-  negativeBalance: {
-    color: '#FF3B30',
   },
   visibilityButton: {
     marginTop: 4,

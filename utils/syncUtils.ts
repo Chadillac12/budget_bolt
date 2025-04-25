@@ -26,16 +26,16 @@ import {
 } from '../types/sync';
 
 // Constants
-const SYNC_CONFIG_KEY = 'budget_bolt_sync_config';
-const SYNC_STATE_KEY = 'budget_bolt_sync_state';
-const DEVICE_ID_KEY = 'budget_bolt_device_id';
-const AUTH_TOKENS_KEY = 'budget_bolt_auth_tokens';
-const SYNC_DIRECTORY = Platform.OS === 'web' ? '' : FileSystem.documentDirectory + 'sync/';
-const SYNC_BATCH_PREFIX = 'sync_batch_';
-const ENCRYPTION_KEY_KEY = 'budget_bolt_encryption_key';
+export const SYNC_CONFIG_KEY = 'budget_bolt_sync_config';
+export const SYNC_STATE_KEY = 'budget_bolt_sync_state';
+export const DEVICE_ID_KEY = 'budget_bolt_device_id';
+export const AUTH_TOKENS_KEY = 'budget_bolt_auth_tokens';
+export const SYNC_DIRECTORY = Platform.OS === 'web' ? '' : FileSystem.documentDirectory + 'sync/';
+export const SYNC_BATCH_PREFIX = 'sync_batch_';
+export const ENCRYPTION_KEY_KEY = 'budget_bolt_encryption_key';
 
 // Default sync configuration
-const DEFAULT_SYNC_CONFIG: SyncConfig = {
+export const DEFAULT_SYNC_CONFIG: SyncConfig = {
   autoSync: true,
   syncInterval: 15, // 15 minutes
   syncOnStartup: true,
@@ -47,7 +47,7 @@ const DEFAULT_SYNC_CONFIG: SyncConfig = {
 };
 
 // Default sync state
-const DEFAULT_SYNC_STATE: SyncState = {
+export const DEFAULT_SYNC_STATE: SyncState = {
   status: SyncStatus.IDLE,
   lastSyncAttempt: null,
   lastSuccessfulSync: null,
@@ -59,7 +59,7 @@ const DEFAULT_SYNC_STATE: SyncState = {
 };
 
 // --- Web stubs ---
-const webSyncStubs = {
+export const webSyncStubs = {
   initializeSync: async () => { console.warn('Sync is not supported on web.'); },
   getDeviceId: async () => { throw new Error('Sync is not supported on web.'); },
   getSyncConfig: async () => DEFAULT_SYNC_CONFIG,
@@ -91,7 +91,7 @@ const webSyncStubs = {
 };
 
 // --- Native implementations ---
-const initializeSync = async (): Promise<void> => {
+export const initializeSync = async (): Promise<void> => {
   try {
     const dirInfo = await FileSystem.getInfoAsync(SYNC_DIRECTORY);
     if (!dirInfo.exists) {
@@ -128,7 +128,7 @@ const initializeSync = async (): Promise<void> => {
   }
 };
 
-const getDeviceId = async (): Promise<string> => {
+export const getDeviceId = async (): Promise<string> => {
   const deviceId = await SecureStore.getItemAsync(DEVICE_ID_KEY);
   if (!deviceId) {
     throw new Error('Device ID not initialized');
@@ -136,7 +136,7 @@ const getDeviceId = async (): Promise<string> => {
   return deviceId;
 };
 
-const getSyncConfig = async (): Promise<SyncConfig> => {
+export const getSyncConfig = async (): Promise<SyncConfig> => {
   const syncConfigJson = await AsyncStorage.getItem(SYNC_CONFIG_KEY);
   if (!syncConfigJson) {
     return DEFAULT_SYNC_CONFIG;
@@ -144,14 +144,14 @@ const getSyncConfig = async (): Promise<SyncConfig> => {
   return JSON.parse(syncConfigJson);
 };
 
-const updateSyncConfig = async (config: Partial<SyncConfig>): Promise<SyncConfig> => {
+export const updateSyncConfig = async (config: Partial<SyncConfig>): Promise<SyncConfig> => {
   const currentConfig = await getSyncConfig();
   const newConfig = { ...currentConfig, ...config };
   await AsyncStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(newConfig));
   return newConfig;
 };
 
-const getSyncState = async (): Promise<SyncState> => {
+export const getSyncState = async (): Promise<SyncState> => {
   const syncStateJson = await AsyncStorage.getItem(SYNC_STATE_KEY);
   if (!syncStateJson) {
     return DEFAULT_SYNC_STATE;
@@ -159,14 +159,14 @@ const getSyncState = async (): Promise<SyncState> => {
   return JSON.parse(syncStateJson);
 };
 
-const updateSyncState = async (state: Partial<SyncState>): Promise<SyncState> => {
+export const updateSyncState = async (state: Partial<SyncState>): Promise<SyncState> => {
   const currentState = await getSyncState();
   const newState = { ...currentState, ...state };
   await AsyncStorage.setItem(SYNC_STATE_KEY, JSON.stringify(newState));
   return newState;
 };
 
-const generateEncryptionKey = async (): Promise<string> => {
+export const generateEncryptionKey = async (): Promise<string> => {
   const randomBytes = await Crypto.getRandomBytesAsync(32);
   return Array.from(randomBytes)
     .map(b => {
@@ -176,7 +176,7 @@ const generateEncryptionKey = async (): Promise<string> => {
     .join('');
 };
 
-const encryptData = async (data: string): Promise<string> => {
+export const encryptData = async (data: string): Promise<string> => {
   const config = await getSyncConfig();
   if (!config.enableEncryption) {
     return data;
@@ -195,7 +195,7 @@ const encryptData = async (data: string): Promise<string> => {
   return `encrypted:${dataHash}:${Buffer.from(data).toString('base64')}`;
 };
 
-const decryptData = async (encryptedData: string): Promise<string> => {
+export const decryptData = async (encryptedData: string): Promise<string> => {
   const config = await getSyncConfig();
   if (!config.enableEncryption) {
     return encryptedData;
@@ -230,7 +230,7 @@ const decryptData = async (encryptedData: string): Promise<string> => {
   return data;
 };
 
-const prepareSyncData = async <T>(
+export const prepareSyncData = async <T>(
   dataType: SyncableDataType,
   data: SyncableDataMap[typeof dataType],
   id: string
@@ -249,7 +249,7 @@ const prepareSyncData = async <T>(
   };
 };
 
-const updateSyncData = async <T>(
+export const updateSyncData = async <T>(
   syncData: SyncableData<T>
 ): Promise<SyncableData<T>> => {
   const deviceId = await getDeviceId();
@@ -264,7 +264,7 @@ const updateSyncData = async <T>(
   };
 };
 
-const markAsDeleted = async <T>(
+export const markAsDeleted = async <T>(
   syncData: SyncableData<T>
 ): Promise<SyncableData<T>> => {
   const deviceId = await getDeviceId();
@@ -280,7 +280,7 @@ const markAsDeleted = async <T>(
   };
 };
 
-const detectConflicts = <T extends keyof SyncableDataMap>(
+export const detectConflicts = <T extends keyof SyncableDataMap>(
   localData: SyncableData<SyncableDataMap[T]>,
   remoteData: SyncableData<SyncableDataMap[T]>,
   dataType: T
@@ -320,7 +320,7 @@ const detectConflicts = <T extends keyof SyncableDataMap>(
   return null;
 };
 
-const resolveConflict = <T extends keyof SyncableDataMap>(
+export const resolveConflict = <T extends keyof SyncableDataMap>(
   conflict: SyncConflict<T>,
   strategy: ConflictResolutionStrategy = ConflictResolutionStrategy.MERGE
 ): SyncableData<SyncableDataMap[T]> => {
@@ -359,7 +359,7 @@ const resolveConflict = <T extends keyof SyncableDataMap>(
   }
 };
 
-const createSyncBatch = async (
+export const createSyncBatch = async (
   changes: SyncableData<any>[]
 ): Promise<SyncBatch> => {
   const deviceId = await getDeviceId();
@@ -372,7 +372,7 @@ const createSyncBatch = async (
   };
 };
 
-const saveSyncBatch = async (batch: SyncBatch): Promise<string> => {
+export const saveSyncBatch = async (batch: SyncBatch): Promise<string> => {
   const batchId = `${SYNC_BATCH_PREFIX}${batch.timestamp}`;
   const batchJson = JSON.stringify(batch);
 
@@ -387,7 +387,7 @@ const saveSyncBatch = async (batch: SyncBatch): Promise<string> => {
   return batchId;
 };
 
-const loadSyncBatch = async (batchId: string): Promise<SyncBatch> => {
+export const loadSyncBatch = async (batchId: string): Promise<SyncBatch> => {
   const batchPath = `${SYNC_DIRECTORY}${batchId}.json`;
   const batchData = await FileSystem.readAsStringAsync(batchPath);
 
@@ -396,19 +396,19 @@ const loadSyncBatch = async (batchId: string): Promise<SyncBatch> => {
   return JSON.parse(decryptedData);
 };
 
-const getPendingSyncBatches = async (): Promise<string[]> => {
+export const getPendingSyncBatches = async (): Promise<string[]> => {
   const dirContents = await FileSystem.readDirectoryAsync(SYNC_DIRECTORY);
   return dirContents
     .filter(filename => filename.startsWith(SYNC_BATCH_PREFIX) && filename.endsWith('.json'))
     .map(filename => filename.replace('.json', ''));
 };
 
-const deleteSyncBatch = async (batchId: string): Promise<void> => {
+export const deleteSyncBatch = async (batchId: string): Promise<void> => {
   const batchPath = `${SYNC_DIRECTORY}${batchId}.json`;
   await FileSystem.deleteAsync(batchPath);
 };
 
-const getStorageProviderAuth = async (
+export const getStorageProviderAuth = async (
   provider: StorageProvider
 ): Promise<StorageProviderAuth | null> => {
   const authJson = await SecureStore.getItemAsync(`${AUTH_TOKENS_KEY}_${provider}`);
@@ -418,24 +418,24 @@ const getStorageProviderAuth = async (
   return JSON.parse(authJson);
 };
 
-const saveStorageProviderAuth = async (
+export const saveStorageProviderAuth = async (
   auth: StorageProviderAuth
 ): Promise<void> => {
   const authJson = JSON.stringify(auth);
   await SecureStore.setItemAsync(`${AUTH_TOKENS_KEY}_${auth.provider}`, authJson);
 };
 
-const clearStorageProviderAuth = async (
+export const clearStorageProviderAuth = async (
   provider: StorageProvider
 ): Promise<void> => {
   await SecureStore.deleteItemAsync(`${AUTH_TOKENS_KEY}_${provider}`);
 };
 
-const isConnectedToWifi = async (): Promise<boolean> => {
+export const isConnectedToWifi = async (): Promise<boolean> => {
   return true;
 };
 
-const isSyncAllowed = async (): Promise<boolean> => {
+export const isSyncAllowed = async (): Promise<boolean> => {
   const config = await getSyncConfig();
 
   if (!config.autoSync) {
@@ -452,7 +452,7 @@ const isSyncAllowed = async (): Promise<boolean> => {
   return true;
 };
 
-const getDeviceInfo = async (): Promise<{
+export const getDeviceInfo = async (): Promise<{
   deviceName: string;
   deviceType: string;
   platform: string;
@@ -482,7 +482,7 @@ const getDeviceInfo = async (): Promise<{
   };
 };
 
-const performSync = async (): Promise<SyncResult> => {
+export const performSync = async (): Promise<SyncResult> => {
   try {
     const canSync = await isSyncAllowed();
     if (!canSync) {
@@ -580,5 +580,30 @@ const performSync = async (): Promise<SyncResult> => {
       conflicts: [],
       errors: [error instanceof Error ? error.message : 'Unknown error during sync']
     };
+  }
+};
+
+export const setupSync = async (): Promise<void> => {
+  try {
+    // Initialize sync system
+    await initializeSync();
+    
+    // Get current sync config
+    const config = await getSyncConfig();
+    
+    // Update sync state to indicate setup is complete
+    await updateSyncState({
+      status: SyncStatus.IDLE,
+      currentOperation: null,
+      error: null
+    });
+    
+    // If sync on startup is enabled, trigger initial sync
+    if (config.syncOnStartup) {
+      await performSync();
+    }
+  } catch (error) {
+    console.error('Failed to setup sync:', error);
+    throw new Error('Failed to setup sync system');
   }
 };

@@ -39,6 +39,9 @@ import {
   saveReport
 } from '../../utils/reportUtils';
 import { getData, storeData } from '../../utils/storage';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 
 /**
  * Reports Screen Component
@@ -46,10 +49,15 @@ import { getData, storeData } from '../../utils/storage';
  * This component provides the UI for building, viewing, and managing custom reports.
  */
 export default function ReportsScreen() {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   // State for managing templates and reports
+  const [currentTab, setCurrentTab] = useState('templates');
+  const [isLoading, setIsLoading] = useState(true);
   const [templates, setTemplates] = useState<ReportTemplate[]>([]);
   const [savedReports, setSavedReports] = useState<SavedReport[]>([]);
-  const [activeTab, setActiveTab] = useState<'templates' | 'saved' | 'builder'>('templates');
+  const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate | null>(null);
+  const [selectedReport, setSelectedReport] = useState<SavedReport | null>(null);
   
   // State for report builder
   const [currentReport, setCurrentReport] = useState<ReportConfig | null>(null);
@@ -90,7 +98,7 @@ export default function ReportsScreen() {
   const handleSelectTemplate = (template: ReportTemplate) => {
     const newReport = createReportFromTemplate(template);
     setCurrentReport(newReport);
-    setActiveTab('builder');
+    setSelectedTemplate(template);
   };
   
   /**
@@ -98,7 +106,7 @@ export default function ReportsScreen() {
    */
   const handleSelectSavedReport = (report: SavedReport) => {
     setCurrentReport(report.config);
-    setActiveTab('builder');
+    setSelectedReport(report);
   };
   
   /**
@@ -177,7 +185,7 @@ export default function ReportsScreen() {
                   <MaterialCommunityIcons
                     name={template.icon as any || 'file-chart'}
                     size={32}
-                    color="#007AFF"
+                    color={theme.colors.primary}
                   />
                 </View>
                 <Text style={styles.templateName}>{template.name}</Text>
@@ -201,11 +209,11 @@ export default function ReportsScreen() {
       
       {savedReports.length === 0 ? (
         <View style={styles.emptyState}>
-          <MaterialCommunityIcons name="file-search" size={64} color="#ccc" />
+          <MaterialCommunityIcons name="file-search" size={64} color={theme.colors.textSecondary} />
           <Text style={styles.emptyStateText}>No saved reports yet</Text>
           <Button 
             mode="contained" 
-            onPress={() => setActiveTab('templates')}
+            onPress={() => setCurrentTab('templates')}
             style={styles.emptyStateButton}
           >
             Create a Report
@@ -237,7 +245,7 @@ export default function ReportsScreen() {
                 )}
                 
                 <View style={styles.savedReportMeta}>
-                  <Chip icon="calendar" style={styles.chip}>
+                  <Chip icon="calendar-month" style={styles.chip}>
                     {formatDateRange(
                       new Date(report.config.dateRange.startDate),
                       new Date(report.config.dateRange.endDate)
@@ -419,7 +427,7 @@ export default function ReportsScreen() {
           </Text>
           <Button 
             mode="contained" 
-            onPress={() => setActiveTab('templates')}
+            onPress={() => setCurrentTab('templates')}
             style={styles.emptyStateButton}
           >
             Browse Templates
@@ -465,7 +473,7 @@ export default function ReportsScreen() {
           headerRight: () => (
             <IconButton
               icon="plus"
-              onPress={() => setActiveTab('templates')}
+              onPress={() => setCurrentTab('templates')}
             />
           ),
         }}
@@ -474,45 +482,45 @@ export default function ReportsScreen() {
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'templates' && styles.activeTab]}
-          onPress={() => setActiveTab('templates')}
+          style={[styles.tab, currentTab === 'templates' && styles.activeTab]}
+          onPress={() => setCurrentTab('templates')}
         >
-          <Text style={[styles.tabText, activeTab === 'templates' && styles.activeTabText]}>
+          <Text style={[styles.tabText, currentTab === 'templates' && styles.activeTabText]}>
             Templates
           </Text>
         </TouchableOpacity>
         
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'saved' && styles.activeTab]}
-          onPress={() => setActiveTab('saved')}
+          style={[styles.tab, currentTab === 'saved' && styles.activeTab]}
+          onPress={() => setCurrentTab('saved')}
         >
-          <Text style={[styles.tabText, activeTab === 'saved' && styles.activeTabText]}>
+          <Text style={[styles.tabText, currentTab === 'saved' && styles.activeTabText]}>
             Saved Reports
           </Text>
         </TouchableOpacity>
         
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'builder' && styles.activeTab]}
-          onPress={() => setActiveTab('builder')}
+          style={[styles.tab, currentTab === 'builder' && styles.activeTab]}
+          onPress={() => setCurrentTab('builder')}
         >
-          <Text style={[styles.tabText, activeTab === 'builder' && styles.activeTabText]}>
+          <Text style={[styles.tabText, currentTab === 'builder' && styles.activeTabText]}>
             Report Builder
           </Text>
         </TouchableOpacity>
       </View>
       
       {/* Content based on active tab */}
-      {activeTab === 'templates' && renderTemplateList()}
-      {activeTab === 'saved' && renderSavedReportsList()}
-      {activeTab === 'builder' && renderReportBuilder()}
+      {currentTab === 'templates' && renderTemplateList()}
+      {currentTab === 'saved' && renderSavedReportsList()}
+      {currentTab === 'builder' && renderReportBuilder()}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme.colors.background,
   },
   container: {
     flex: 1,
@@ -520,9 +528,9 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: theme.colors.border,
   },
   tab: {
     flex: 1,
@@ -531,24 +539,25 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#007AFF',
+    borderBottomColor: theme.colors.primary,
   },
   tabText: {
     fontSize: 14,
-    color: '#666',
+    color: theme.colors.textSecondary,
   },
   activeTabText: {
-    color: '#007AFF',
+    color: theme.colors.primary,
     fontWeight: 'bold',
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 8,
+    color: theme.colors.text,
   },
   sectionDescription: {
     fontSize: 14,
-    color: '#666',
+    color: theme.colors.textSecondary,
     marginBottom: 16,
   },
   templateGrid: {
@@ -572,7 +581,7 @@ const styles = StyleSheet.create({
   },
   templateDescription: {
     fontSize: 12,
-    color: '#666',
+    color: theme.colors.textSecondary,
     textAlign: 'center',
   },
   emptyState: {
@@ -582,7 +591,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#666',
+    color: theme.colors.textSecondary,
     textAlign: 'center',
     marginVertical: 16,
   },
@@ -603,11 +612,11 @@ const styles = StyleSheet.create({
   },
   savedReportDate: {
     fontSize: 12,
-    color: '#666',
+    color: theme.colors.textSecondary,
   },
   savedReportDescription: {
     fontSize: 14,
-    color: '#333',
+    color: theme.colors.text,
     marginVertical: 8,
   },
   savedReportMeta: {
@@ -654,7 +663,7 @@ const styles = StyleSheet.create({
   dateRangePreview: {
     marginTop: 8,
     padding: 8,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: theme.colors.surfaceVariant,
     borderRadius: 4,
   },
   dateRangeText: {
@@ -673,11 +682,11 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: theme.colors.border,
   },
   visualizationOptionSelected: {
-    borderColor: '#007AFF',
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.primaryContainer,
   },
   visualizationOptionText: {
     fontSize: 12,
@@ -711,18 +720,19 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 12,
-    color: '#666',
+    color: theme.colors.textSecondary,
     marginBottom: 4,
   },
   summaryValue: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: theme.colors.text,
   },
   visualizationContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     height: 200,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: theme.colors.surfaceVariant,
     borderRadius: 8,
   },
   noDataContainer: {
@@ -732,7 +742,7 @@ const styles = StyleSheet.create({
   },
   noDataText: {
     fontSize: 16,
-    color: '#666',
+    color: theme.colors.textSecondary,
   },
   dataTable: {
     marginTop: 8,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, FlatList } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, FlatList, Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { useAppContext } from '@/context/AppContext';
 import BudgetProgressBar from '@/components/budgets/BudgetProgressBar';
@@ -7,8 +7,14 @@ import BudgetCategoryManager from '@/components/budgets/BudgetCategoryManager';
 import { Plus, Calendar, Filter, Settings, Layers } from 'lucide-react-native';
 import { formatMonthYear } from '@/utils/dateUtils';
 import { BudgetCategory, BudgetCategoryGroup } from '@/types/budget';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
+import MonospaceTitle from '@/components/ui/MonospaceTitle';
 
 export default function BudgetScreen() {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const { state } = useAppContext();
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [activeTab, setActiveTab] = useState<'summary' | 'categories'>('summary');
@@ -94,7 +100,7 @@ export default function BudgetScreen() {
           style={[styles.tab, activeTab === 'summary' && styles.activeTab]}
           onPress={() => setActiveTab('summary')}
         >
-          <Layers size={18} color={activeTab === 'summary' ? "#007AFF" : "#666"} />
+          <Layers size={18} color={activeTab === 'summary' ? theme.colors.primary : theme.colors.textSecondary} />
           <Text style={[styles.tabText, activeTab === 'summary' && styles.activeTabText]}>Summary</Text>
         </TouchableOpacity>
         
@@ -102,7 +108,7 @@ export default function BudgetScreen() {
           style={[styles.tab, activeTab === 'categories' && styles.activeTab]}
           onPress={() => setActiveTab('categories')}
         >
-          <Settings size={18} color={activeTab === 'categories' ? "#007AFF" : "#666"} />
+          <Settings size={18} color={activeTab === 'categories' ? theme.colors.primary : theme.colors.textSecondary} />
           <Text style={[styles.tabText, activeTab === 'categories' && styles.activeTabText]}>Manage Categories</Text>
         </TouchableOpacity>
       </View>
@@ -116,7 +122,7 @@ export default function BudgetScreen() {
             </TouchableOpacity>
             
             <View style={styles.monthContainer}>
-              <Calendar size={18} color="#007AFF" style={styles.calendarIcon} />
+              <Calendar size={18} color={theme.colors.primary} style={styles.calendarIcon} />
               <Text style={styles.monthText}>{formatMonthYear(selectedMonth)}</Text>
             </View>
             
@@ -166,7 +172,7 @@ export default function BudgetScreen() {
           
           {/* Budget Categories */}
           <ScrollView style={styles.categoriesContainer}>
-            <Text style={styles.sectionTitle}>Budget Categories</Text>
+            <MonospaceTitle size="medium">Budget Categories</MonospaceTitle>
             
             {/* Group Example */}
             <BudgetProgressBar
@@ -191,7 +197,7 @@ export default function BudgetScreen() {
               setActiveTab('categories');
             }}
           >
-            <Plus size={24} color="white" />
+            <Plus size={24} color={theme.colors.card} />
           </TouchableOpacity>
         </View>
       ) : (
@@ -201,19 +207,19 @@ export default function BudgetScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
   },
   contentContainer: {
     flex: 1,
   },
   tabSelector: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   tab: {
     flex: 1,
@@ -225,31 +231,31 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomColor: '#007AFF',
+    borderBottomColor: theme.colors.primary,
   },
   tabText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#666',
+    color: theme.colors.textSecondary,
     marginLeft: 6,
   },
   activeTabText: {
-    color: '#007AFF',
+    color: theme.colors.primary,
   },
   monthSelector: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   monthNavigator: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#007AFF',
+    color: theme.colors.primary,
     paddingHorizontal: 12,
   },
   monthContainer: {
@@ -264,10 +270,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   summaryContainer: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   summaryRow: {
     flexDirection: 'row',
@@ -279,7 +285,7 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginBottom: 4,
   },
   summaryValue: {
@@ -287,15 +293,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   positiveValue: {
-    color: '#34C759',
+    color: theme.colors.success,
   },
   negativeValue: {
-    color: '#FF3B30',
+    color: theme.colors.error,
   },
   progressContainer: {
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#E5E5EA',
+    backgroundColor: theme.colors.border,
     position: 'relative',
     overflow: 'hidden',
   },
@@ -305,21 +311,21 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#E5E5EA',
+    backgroundColor: theme.colors.border,
   },
   progressBar: {
     height: '100%',
-    backgroundColor: '#34C759',
+    backgroundColor: theme.colors.success,
     borderRadius: 10,
   },
   normalProgress: {
-    backgroundColor: '#34C759',
+    backgroundColor: theme.colors.success,
   },
   warningProgress: {
-    backgroundColor: '#FF9500',
+    backgroundColor: theme.colors.warning,
   },
   overBudgetProgress: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: theme.colors.error,
   },
   progressText: {
     position: 'absolute',
@@ -329,18 +335,13 @@ const styles = StyleSheet.create({
     bottom: 0,
     textAlign: 'center',
     textAlignVertical: 'center',
-    color: 'white',
+    color: theme.colors.card,
     fontWeight: '600',
     fontSize: 12,
   },
   categoriesContainer: {
     flex: 1,
     padding: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16,
   },
   addButton: {
     position: 'absolute',
@@ -349,10 +350,10 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,

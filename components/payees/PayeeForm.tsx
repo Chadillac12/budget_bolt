@@ -12,6 +12,9 @@ import {
 import { useAppContext } from '@/context/AppContext';
 import { Payee, PayeeContact } from '@/types/payee';
 import { Check, Plus, Trash2, X } from 'lucide-react-native';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 
 interface PayeeFormProps {
   payee?: Payee;
@@ -22,11 +25,13 @@ interface PayeeFormProps {
 /**
  * Form for creating or editing payees
  */
-export default function PayeeForm({ 
-  payee, 
-  onSave, 
-  onCancel 
+export default function PayeeForm({
+  payee,
+  onSave,
+  onCancel
 }: PayeeFormProps) {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const { state } = useAppContext();
   const isEditing = !!payee;
   
@@ -169,7 +174,7 @@ export default function PayeeForm({
                 onPress={() => handleRemoveAlias(index)}
                 style={styles.removeButton}
               >
-                <X size={16} color="#FF3B30" />
+                <X size={16} color={theme.colors.error} />
               </TouchableOpacity>
             </View>
           ))}
@@ -185,7 +190,7 @@ export default function PayeeForm({
               style={styles.addButton}
               onPress={handleAddAlias}
             >
-              <Plus size={16} color="white" />
+              <Plus size={16} color={theme.colors.card} />
             </TouchableOpacity>
           </View>
         </View>
@@ -210,7 +215,7 @@ export default function PayeeForm({
                   onPress={() => handleRemoveContact(index)}
                   style={styles.removeButton}
                 >
-                  <Trash2 size={16} color="#FF3B30" />
+                  <Trash2 size={16} color={theme.colors.error} />
                 </TouchableOpacity>
               </View>
               
@@ -311,14 +316,14 @@ export default function PayeeForm({
               style={[
                 styles.categoryItem,
                 formData.categoryIds?.includes(category.id) && styles.selectedCategoryItem,
-                { borderColor: category.color || '#E5E5EA' }
+                { borderColor: category.color || theme.colors.border }
               ]}
               onPress={() => handleToggleCategory(category.id)}
             >
               <View 
                 style={[
                   styles.categoryIndicator, 
-                  { backgroundColor: category.color || '#E5E5EA' }
+                  { backgroundColor: category.color || theme.colors.border }
                 ]}
               />
               <Text style={styles.categoryText}>{category.name}</Text>
@@ -352,7 +357,7 @@ export default function PayeeForm({
           <Switch
             value={formData.isActive}
             onValueChange={(value) => handleChange('isActive', value)}
-            trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+            trackColor={{ false: theme.colors.border, true: theme.colors.success }}
           />
         </View>
       </View>
@@ -370,7 +375,7 @@ export default function PayeeForm({
           style={styles.saveButton}
           onPress={handleSubmit}
         >
-          <Check size={16} color="white" style={styles.buttonIcon} />
+          <Check size={16} color={theme.colors.card} style={styles.buttonIcon} />
           <Text style={styles.saveButtonText}>
             {isEditing ? 'Update' : 'Save'}
           </Text>
@@ -380,15 +385,15 @@ export default function PayeeForm({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
   },
   header: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   title: {
     fontSize: 20,
@@ -400,14 +405,14 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginBottom: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: theme.colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
   },
@@ -426,7 +431,7 @@ const styles = StyleSheet.create({
   aliasItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -447,7 +452,7 @@ const styles = StyleSheet.create({
   aliasInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: theme.colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -455,7 +460,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   addButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
     borderRadius: 8,
     padding: 8,
   },
@@ -463,7 +468,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   contactItem: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
@@ -484,14 +489,14 @@ const styles = StyleSheet.create({
     textTransform: 'capitalize',
   },
   primaryBadge: {
-    backgroundColor: '#34C759',
+    backgroundColor: theme.colors.success,
     borderRadius: 4,
     paddingHorizontal: 6,
     paddingVertical: 2,
     marginLeft: 8,
   },
   primaryText: {
-    color: 'white',
+    color: theme.colors.card,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -501,14 +506,14 @@ const styles = StyleSheet.create({
   },
   contactLabel: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
   },
   setPrimaryButton: {
     marginTop: 8,
     alignSelf: 'flex-start',
   },
   setPrimaryText: {
-    color: '#007AFF',
+    color: theme.colors.primary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -524,20 +529,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: '#E5E5EA',
+    backgroundColor: theme.colors.border,
     marginRight: 8,
     marginBottom: 8,
   },
   activeContactTypeButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
   },
   contactTypeButtonText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
   },
   contactInput: {
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: theme.colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -545,13 +550,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   addContactButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: 'center',
   },
   addContactButtonText: {
-    color: 'white',
+    color: theme.colors.card,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -571,7 +576,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   selectedCategoryItem: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
   },
   categoryIndicator: {
     width: 12,
@@ -584,7 +589,7 @@ const styles = StyleSheet.create({
   },
   noCategoriesText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     fontStyle: 'italic',
   },
   toggleContainer: {
@@ -597,19 +602,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
+    borderTopColor: theme.colors.border,
   },
   cancelButton: {
     flex: 1,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: theme.colors.border,
     borderRadius: 8,
     marginRight: 8,
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -618,7 +623,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
     padding: 12,
     borderRadius: 8,
     marginLeft: 8,
@@ -627,7 +632,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   saveButtonText: {
-    color: 'white',
+    color: theme.colors.card,
     fontSize: 16,
     fontWeight: '600',
   },

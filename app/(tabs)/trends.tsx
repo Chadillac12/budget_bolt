@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { useAppContext } from '@/context/AppContext';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
@@ -19,6 +19,10 @@ import {
 } from '@/utils/trendUtils';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
+import MonospaceTitle from '@/components/ui/MonospaceTitle';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -26,6 +30,8 @@ const screenWidth = Dimensions.get('window').width;
  * Trend Analysis Dashboard Screen
  */
 export default function TrendsScreen() {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const { state } = useAppContext();
   const [loading, setLoading] = useState(false);
   const [selectedTrendType, setSelectedTrendType] = useState<TrendAnalysisType>('spending-by-category');
@@ -242,9 +248,9 @@ export default function TrendsScreen() {
           width={Math.max(screenWidth, labels.length * 50)}
           height={220}
           chartConfig={{
-            backgroundColor: '#ffffff',
-            backgroundGradientFrom: '#ffffff',
-            backgroundGradientTo: '#ffffff',
+            backgroundColor: theme.colors.card,
+            backgroundGradientFrom: theme.colors.card,
+            backgroundGradientTo: theme.colors.card,
             decimalPlaces: 0,
             color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
             labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
@@ -277,7 +283,7 @@ export default function TrendsScreen() {
         name: point.label || category?.name || 'Unknown',
         value: point.value,
         color: category?.color || '#' + Math.floor(Math.random() * 16777215).toString(16),
-        legendFontColor: '#7F7F7F',
+        legendFontColor: theme.colors.textSecondary,
         legendFontSize: 12
       };
     });
@@ -288,9 +294,9 @@ export default function TrendsScreen() {
         width={screenWidth - 32}
         height={220}
         chartConfig={{
-          backgroundColor: '#ffffff',
-          backgroundGradientFrom: '#ffffff',
-          backgroundGradientTo: '#ffffff',
+          backgroundColor: theme.colors.card,
+          backgroundGradientFrom: theme.colors.card,
+          backgroundGradientTo: theme.colors.card,
           decimalPlaces: 0,
           color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
           labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
@@ -384,13 +390,13 @@ export default function TrendsScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Trend Analysis</Text>
+        <MonospaceTitle size="large">Trend Analysis</MonospaceTitle>
         <View style={styles.headerButtons}>
           <TouchableOpacity style={styles.iconButton} onPress={() => setShowSettings(!showSettings)}>
-            <Ionicons name="settings-outline" size={24} color="#333" />
+            <Ionicons name="settings-outline" size={24} color={theme.colors.text} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton} onPress={exportToCSV}>
-            <Ionicons name="download-outline" size={24} color="#333" />
+            <Ionicons name="download-outline" size={24} color={theme.colors.text} />
           </TouchableOpacity>
         </View>
       </View>
@@ -399,7 +405,7 @@ export default function TrendsScreen() {
       {renderTimePeriodSelector()}
 
       {loading ? (
-        <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />
+        <ActivityIndicator size="large" color={theme.colors.primary} style={styles.loader} />
       ) : (
         <View style={styles.chartContainer}>
           {renderChart()}
@@ -411,7 +417,7 @@ export default function TrendsScreen() {
       {/* Summary section */}
       {currentAnalysis && (
         <View style={styles.summaryContainer}>
-          <Text style={styles.summaryTitle}>Summary</Text>
+          <MonospaceTitle size="medium">Summary</MonospaceTitle>
           {/* Summary content will be added based on the selected trend type */}
         </View>
       )}
@@ -419,10 +425,10 @@ export default function TrendsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme.colors.surface,
     padding: 16,
   },
   header: {
@@ -430,11 +436,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
   },
   headerButtons: {
     flexDirection: 'row',
@@ -450,23 +451,23 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     marginRight: 8,
     borderRadius: 20,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: theme.colors.border,
   },
   selectorButtonActive: {
-    backgroundColor: '#2196F3',
+    backgroundColor: theme.colors.primary,
   },
   selectorButtonText: {
-    color: '#333',
+    color: theme.colors.text,
   },
   selectorButtonTextActive: {
-    color: '#fff',
+    color: theme.colors.card,
   },
   chartContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.card,
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -482,24 +483,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   noDataText: {
-    color: '#999',
+    color: theme.colors.textSecondary,
     fontSize: 16,
   },
   summaryContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.card,
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
-  },
-  summaryTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
   },
   loader: {
     marginVertical: 100,

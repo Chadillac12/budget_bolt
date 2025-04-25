@@ -5,19 +5,69 @@ import {
   Text, 
   ScrollView, 
   TouchableOpacity,
-  Switch
+  Switch,
+  Alert,
+  Linking
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useAppContext } from '@/context/AppContext';
+import { useTheme } from '@/context/ThemeContext';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
+import { ThemedScreen, ThemedText } from '@/components/themed';
 import { User, Lock, Database, Upload, Download, Bell, Moon, Palette, CircleHelp as HelpCircle, Info, ChevronRight } from 'lucide-react-native';
+import { router } from 'expo-router';
 
 export default function SettingsScreen() {
+  const appTheme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const { state } = useAppContext();
-  const [darkMode, setDarkMode] = React.useState(false);
+  const { isDark, toggleTheme: originalToggleTheme } = useTheme();
   const [notifications, setNotifications] = React.useState(true);
   
-  const toggleDarkMode = () => setDarkMode(prevState => !prevState);
-  const toggleNotifications = () => setNotifications(prevState => !prevState);
+  const toggleNotifications = () => {
+    console.log('Toggling notifications from', notifications, 'to', !notifications);
+    setNotifications(prevState => !prevState);
+  };
+
+  const handleThemeToggle = () => {
+    originalToggleTheme();
+  };
+
+  const handleProfilePress = () => {
+    Alert.alert('Profile', 'Profile editing will be available in a future update.');
+  };
+
+  const handleSecurityPress = () => {
+    Alert.alert('Security', 'Security settings will be available in a future update.');
+  };
+
+  const handleBackupPress = () => {
+    Alert.alert('Backup Data', 'Data backup feature will be available in a future update.');
+  };
+
+  const handleImportPress = () => {
+    router.push('/import');
+  };
+
+  const handleExportPress = () => {
+    Alert.alert('Export', 'Data export feature will be available in a future update.');
+  };
+
+  const handleAppearancePress = () => {
+    Alert.alert('Appearance', 'Additional appearance settings will be available in a future update.');
+  };
+
+  const handleHelpPress = () => {
+    Linking.openURL('https://www.example.com/help');
+  };
+
+  const handleAboutPress = () => {
+    Alert.alert('About Budget Bolt', 'Version 1.0.0\n\nA comprehensive personal budget tracker application with visual financial planning and real-time updates.', [
+      { text: 'OK' }
+    ]);
+  };
 
   const renderSettingItem = (
     icon: React.ReactNode,
@@ -25,153 +75,186 @@ export default function SettingsScreen() {
     onPress: () => void,
     rightElement?: React.ReactNode
   ) => (
-    <TouchableOpacity style={styles.settingItem} onPress={onPress}>
+    <TouchableOpacity 
+      style={[
+        styles.settingItem, 
+        { 
+          borderBottomColor: appTheme.colors.border, 
+          backgroundColor: appTheme.colors.card 
+        }
+      ]} 
+      onPress={onPress}
+    >
       <View style={styles.settingItemLeft}>
-        <View style={styles.iconContainer}>
+        <View style={[styles.iconContainer, { backgroundColor: appTheme.colors.background }]}>
           {icon}
         </View>
-        <Text style={styles.settingTitle}>{title}</Text>
+        <Text style={[styles.settingTitle, { color: appTheme.colors.text }]}>{title}</Text>
       </View>
       
       {rightElement ? (
         rightElement
       ) : (
-        <ChevronRight size={20} color="#8E8E93" />
+        <ChevronRight size={20} color={appTheme.colors.textSecondary} />
       )}
     </TouchableOpacity>
   );
 
-  return (
-    <View style={styles.container}>
-      <StatusBar style="auto" />
+  // New function for rendering items with switches
+  const renderSwitchItem = (
+    icon: React.ReactNode,
+    title: string,
+    value: boolean,
+    onValueChange: () => void
+  ) => (
+    <View 
+      style={[
+        styles.settingItem, 
+        { 
+          borderBottomColor: appTheme.colors.border, 
+          backgroundColor: appTheme.colors.card 
+        }
+      ]} 
+    >
+      <View style={styles.settingItemLeft}>
+        <View style={[styles.iconContainer, { backgroundColor: appTheme.colors.background }]}>
+          {icon}
+        </View>
+        <Text style={[styles.settingTitle, { color: appTheme.colors.text }]}>{title}</Text>
+      </View>
       
+      <Switch
+        value={value}
+        onValueChange={onValueChange}
+        trackColor={{ 
+          false: appTheme.colors.border, 
+          true: appTheme.colors.primary 
+        }}
+        thumbColor={appTheme.colors.card}
+      />
+    </View>
+  );
+
+  return (
+    <ThemedScreen>
       <ScrollView>
         {/* Profile Section */}
-        <View style={styles.profileSection}>
-          <View style={styles.profileIconContainer}>
-            <User size={36} color="#007AFF" />
+        <View style={[styles.profileSection, { backgroundColor: appTheme.colors.card }]}>
+          <View style={[styles.profileIconContainer, { backgroundColor: appTheme.colors.background }]}>
+            <User size={36} color={appTheme.colors.primary} />
           </View>
           
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>User Name</Text>
-            <Text style={styles.profileEmail}>user@example.com</Text>
+            <Text style={[styles.profileName, { color: appTheme.colors.text }]}>User Name</Text>
+            <Text style={[styles.profileEmail, { color: appTheme.colors.textSecondary }]}>user@example.com</Text>
           </View>
           
-          <TouchableOpacity style={styles.editProfileButton}>
-            <Text style={styles.editProfileText}>Edit</Text>
+          <TouchableOpacity 
+            style={[styles.editProfileButton, { backgroundColor: appTheme.colors.background }]}
+            onPress={handleProfilePress}
+          >
+            <Text style={[styles.editProfileText, { color: appTheme.colors.primary }]}>Edit</Text>
           </TouchableOpacity>
         </View>
         
         {/* Account Section */}
-        <View style={styles.settingsSection}>
-          <Text style={styles.sectionTitle}>Account</Text>
+        <View style={[styles.settingsSection, { backgroundColor: appTheme.colors.card }]}>
+          <Text style={[styles.sectionTitle, { color: appTheme.colors.textSecondary }]}>Account</Text>
           
           {renderSettingItem(
-            <User size={20} color="#007AFF" />,
+            <User size={20} color={appTheme.colors.primary} />,
             'Profile Information',
-            () => {}
+            handleProfilePress
           )}
           
           {renderSettingItem(
-            <Lock size={20} color="#5856D6" />,
+            <Lock size={20} color={appTheme.colors.secondary} />,
             'Security',
-            () => {}
+            handleSecurityPress
           )}
         </View>
         
         {/* Data Management Section */}
-        <View style={styles.settingsSection}>
-          <Text style={styles.sectionTitle}>Data Management</Text>
+        <View style={[styles.settingsSection, { backgroundColor: appTheme.colors.card }]}>
+          <Text style={[styles.sectionTitle, { color: appTheme.colors.textSecondary }]}>Data Management</Text>
           
           {renderSettingItem(
-            <Database size={20} color="#34C759" />,
+            <Database size={20} color={appTheme.colors.success} />,
             'Backup Data',
-            () => {}
+            handleBackupPress
           )}
           
           {renderSettingItem(
-            <Upload size={20} color="#FF9500" />,
+            <Upload size={20} color={appTheme.colors.warning} />,
             'Import Transactions',
-            () => {}
+            handleImportPress
           )}
           
           {renderSettingItem(
-            <Download size={20} color="#FF2D55" />,
+            <Download size={20} color={appTheme.colors.error} />,
             'Export Transactions',
-            () => {}
+            handleExportPress
           )}
         </View>
         
         {/* Preferences Section */}
-        <View style={styles.settingsSection}>
-          <Text style={styles.sectionTitle}>Preferences</Text>
+        <View style={[styles.settingsSection, { backgroundColor: appTheme.colors.card }]}>
+          <Text style={[styles.sectionTitle, { color: appTheme.colors.textSecondary }]}>Preferences</Text>
           
-          {renderSettingItem(
-            <Bell size={20} color="#FF9500" />,
+          {renderSwitchItem(
+            <Bell size={20} color={appTheme.colors.warning} />,
             'Notifications',
-            toggleNotifications,
-            <Switch
-              value={notifications}
-              onValueChange={toggleNotifications}
-              trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
-              thumbColor="white"
-            />
+            notifications,
+            toggleNotifications
           )}
           
-          {renderSettingItem(
-            <Moon size={20} color="#8E8E93" />,
+          {renderSwitchItem(
+            <Moon size={20} color={isDark ? appTheme.colors.primary : appTheme.colors.textSecondary} />,
             'Dark Mode',
-            toggleDarkMode,
-            <Switch
-              value={darkMode}
-              onValueChange={toggleDarkMode}
-              trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
-              thumbColor="white"
-            />
+            isDark,
+            handleThemeToggle
           )}
           
           {renderSettingItem(
-            <Palette size={20} color="#AF52DE" />,
+            <Palette size={20} color={appTheme.colors.secondary} />,
             'Appearance',
-            () => {}
+            handleAppearancePress
           )}
         </View>
         
         {/* Help & Support Section */}
-        <View style={styles.settingsSection}>
-          <Text style={styles.sectionTitle}>Help & Support</Text>
+        <View style={[styles.settingsSection, { backgroundColor: appTheme.colors.card }]}>
+          <Text style={[styles.sectionTitle, { color: appTheme.colors.textSecondary }]}>Help & Support</Text>
           
           {renderSettingItem(
-            <HelpCircle size={20} color="#007AFF" />,
+            <HelpCircle size={20} color={appTheme.colors.primary} />,
             'Help Center',
-            () => {}
+            handleHelpPress
           )}
           
           {renderSettingItem(
-            <Info size={20} color="#5856D6" />,
+            <Info size={20} color={appTheme.colors.secondary} />,
             'About',
-            () => {}
+            handleAboutPress
           )}
         </View>
         
         {/* App Version */}
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>Version 1.0.0</Text>
+          <Text style={[styles.versionText, { color: appTheme.colors.textSecondary }]}>Version 1.0.0</Text>
         </View>
       </ScrollView>
-    </View>
+    </ThemedScreen>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
   },
   profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
     padding: 20,
     marginBottom: 20,
   },
@@ -179,7 +262,6 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#F2F2F7',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -194,21 +276,17 @@ const styles = StyleSheet.create({
   },
   profileEmail: {
     fontSize: 14,
-    color: '#8E8E93',
   },
   editProfileButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#F2F2F7',
     borderRadius: 14,
   },
   editProfileText: {
     fontSize: 14,
-    color: '#007AFF',
     fontWeight: '500',
   },
   settingsSection: {
-    backgroundColor: 'white',
     borderRadius: 12,
     marginBottom: 20,
     marginHorizontal: 16,
@@ -217,7 +295,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#8E8E93',
     marginBottom: 8,
     marginHorizontal: 16,
     marginTop: 16,
@@ -229,7 +306,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
   },
   settingItemLeft: {
     flexDirection: 'row',
@@ -239,14 +315,12 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#F2F2F7',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   settingTitle: {
     fontSize: 16,
-    color: '#000',
   },
   versionContainer: {
     alignItems: 'center',
@@ -254,6 +328,5 @@ const styles = StyleSheet.create({
   },
   versionText: {
     fontSize: 14,
-    color: '#8E8E93',
   },
 });

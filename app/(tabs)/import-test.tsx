@@ -6,8 +6,13 @@ import ImportWizardTest from '@/components/import-export/ImportWizardTest';
 /**
  * A test screen for the import wizard functionality
  * This screen helps isolate and debug the CSV import process
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
  */
 export default function ImportTestScreen() {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ 
@@ -23,9 +28,9 @@ export default function ImportTestScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
   },
 });

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, ScrollView, RefreshControl, Platform, TouchableOpacity } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
+import { useRouter, Link } from 'expo-router';
 import { useAppContext } from '@/context/AppContext';
 import AccountSummaryCard from '@/components/dashboard/AccountSummaryCard';
 import BudgetSummaryCard from '@/components/dashboard/BudgetSummaryCard';
@@ -13,6 +13,11 @@ import { LineChart } from 'react-native-chart-kit';
 import { Dimensions } from 'react-native';
 import TransactionItem from '@/components/transactions/TransactionItem';
 import BudgetProgressBar from '@/components/budgets/BudgetProgressBar';
+import { ThemedScreen, ThemedText, ThemedCard } from '@/components/themed';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useTheme } from '@/context/ThemeContext';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 
 interface LineChartProps {
   data: {
@@ -77,6 +82,9 @@ const WebCompatibleLineChart = (props: LineChartProps) => {
 export default function DashboardScreen() {
   const { state } = useAppContext();
   const router = useRouter();
+  const { isDark } = useTheme();
+  const appTheme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const [refreshing, setRefreshing] = useState(false);
   const [accountSummary, setAccountSummary] = useState<AccountSummary>({
     totalBalance: 0,
@@ -85,10 +93,9 @@ export default function DashboardScreen() {
     netChange: 0,
   });
   const [budgetSummary, setBudgetSummary] = useState<BudgetSummary>({
-    totalAllocated: 0,
+    totalBudgeted: 0,
     totalSpent: 0,
-    totalRemaining: 0,
-    percentageSpent: 0,
+    remainingBudget: 0,
   });
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
   const [activeBudget, setActiveBudget] = useState<Budget | null>(null);
@@ -163,81 +170,14 @@ export default function DashboardScreen() {
           }, 0);
         };
         
-        // Update budget categories with transaction data
-        const updateBudgetWithTransactions = () => {
-          // Get transactions for the budget period
-          const budgetStart = new Date(currentActiveBudget.startDate);
-          const budgetEnd = new Date(currentActiveBudget.endDate);
-          
-          const budgetTransactions = state.transactions.filter(tx => {
-            const txDate = new Date(tx.date);
-            return txDate >= budgetStart && txDate <= budgetEnd && tx.type === 'expense';
-          });
-          
-          // Create a map to track spending by category
-          const categorySpending: Record<string, number> = {};
-          
-          // Process all transactions
-          budgetTransactions.forEach(tx => {
-            if (tx.isSplit && tx.splits) {
-              // Handle split transactions
-              tx.splits.forEach(split => {
-                if (!categorySpending[split.categoryId]) {
-                  categorySpending[split.categoryId] = 0;
-                }
-                categorySpending[split.categoryId] += split.amount;
-              });
-            } else {
-              // Handle regular transactions
-              if (!categorySpending[tx.categoryId]) {
-                categorySpending[tx.categoryId] = 0;
-              }
-              categorySpending[tx.categoryId] += tx.amount;
-            }
-          });
-          
-          // Update budget categories with actual spending
-          const updateCategorySpending = (
-            categories: (BudgetCategory | BudgetCategoryGroup)[]
-          ): (BudgetCategory | BudgetCategoryGroup)[] => {
-            return categories.map(cat => {
-              if ('categoryId' in cat) {
-                // It's a BudgetCategory
-                const spent = categorySpending[cat.categoryId] || 0;
-                return {
-                  ...cat,
-                  spent,
-                  remaining: cat.allocated - spent
-                };
-              } else {
-                // It's a BudgetCategoryGroup, recursively update
-                return {
-                  ...cat,
-                  children: updateCategorySpending(cat.children)
-                };
-              }
-            });
-          };
-          
-          // Update the budget categories
-          currentActiveBudget.categories = updateCategorySpending(currentActiveBudget.categories);
-        };
-        
-        // Update budget with transaction data
-        updateBudgetWithTransactions();
-        
-        const totalAllocated = calculateCategoryValue(currentActiveBudget.categories, 'allocated');
+        const totalBudgeted = calculateCategoryValue(currentActiveBudget.categories, 'allocated');
         const totalSpent = calculateCategoryValue(currentActiveBudget.categories, 'spent');
-        const totalRemaining = totalAllocated - totalSpent;
-        const percentageSpent = totalAllocated > 0 
-          ? (totalSpent / totalAllocated) * 100 
-          : 0;
-          
+        const remainingBudget = totalBudgeted - totalSpent;
+        
         setBudgetSummary({
-          totalAllocated,
+          totalBudgeted,
           totalSpent,
-          totalRemaining,
-          percentageSpent,
+          remainingBudget,
         });
       }
     }
@@ -275,17 +215,25 @@ export default function DashboardScreen() {
     ],
   };
 
-
   return (
-    <View style={styles.container}>
-      <StatusBar style="auto" />
-      
+    <ThemedScreen>
       <ScrollView
-        style={styles.scrollView}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[appTheme.colors.primary]}
+            tintColor={appTheme.colors.primary}
+          />
         }
       >
+        <View style={styles.headerContainer}>
+          <ThemedText variant="title" style={styles.headerTitle} monospace={true}>Dashboard</ThemedText>
+          <ThemedText variant="subtitle" style={styles.headerSubtitle}>
+            {formatMonthYear(new Date())}
+          </ThemedText>
+        </View>
+        
         {/* Account Summary Card */}
         <AccountSummaryCard 
           accounts={state.accounts} 
@@ -303,19 +251,19 @@ export default function DashboardScreen() {
             width={Dimensions.get('window').width - 32}
             height={200}
             chartConfig={{
-              backgroundColor: '#ffffff',
-              backgroundGradientFrom: '#ffffff',
-              backgroundGradientTo: '#ffffff',
+              backgroundColor: appTheme.colors.card,
+              backgroundGradientFrom: appTheme.colors.card,
+              backgroundGradientTo: appTheme.colors.card,
               decimalPlaces: 0,
-              color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+              color: (opacity = 1) => `rgba(${appTheme.colors.primary.replace('#', '').match(/.{1,2}/g)?.map(hex => parseInt(hex, 16)).join(', ') || '0, 122, 255'}, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(${appTheme.colors.text.replace('#', '').match(/.{1,2}/g)?.map(hex => parseInt(hex, 16)).join(', ') || '0, 0, 0'}, ${opacity})`,
               style: {
                 borderRadius: 16,
               },
               propsForDots: {
                 r: '4',
                 strokeWidth: '2',
-                stroke: '#007AFF',
+                stroke: appTheme.colors.primary,
               },
             }}
             bezier
@@ -410,23 +358,48 @@ export default function DashboardScreen() {
           )}
         </View>
         
+        {/* Add a debug button for testing CSV parsing */}
+        <Link href="/csv-test" asChild>
+          <TouchableOpacity 
+            style={{ 
+              position: 'absolute', 
+              bottom: 20, 
+              right: 20, 
+              backgroundColor: appTheme.colors.primary, 
+              padding: 10, 
+              borderRadius: 8 
+            }}
+          >
+            <Text style={{ color: appTheme.colors.onPrimary }}>CSV Test</Text>
+          </TouchableOpacity>
+        </Link>
+        
         {/* Bottom padding */}
         <View style={styles.bottomPadding} />
       </ScrollView>
-    </View>
+    </ThemedScreen>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
   },
-  scrollView: {
-    flex: 1,
+  headerContainer: {
+    padding: theme.spacing.md,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: theme.colors.text,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
   },
   chartContainer: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: 12,
     padding: 16,
     marginHorizontal: 16,
@@ -434,7 +407,7 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web'
       ? { boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }
       : {
-          shadowColor: '#000',
+          shadowColor: theme.colors.text,
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.1,
           shadowRadius: 4,
@@ -446,7 +419,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   sectionContainer: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: 12,
     padding: 16,
     marginHorizontal: 16,
@@ -454,7 +427,7 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web'
       ? { boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }
       : {
-          shadowColor: '#000',
+          shadowColor: theme.colors.text,
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.1,
           shadowRadius: 4,
@@ -470,26 +443,26 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000',
+    color: theme.colors.text,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginBottom: 8,
   },
   viewAll: {
     fontSize: 14,
-    color: '#007AFF',
+    color: theme.colors.primary,
   },
   positiveValue: {
-    color: '#34C759',
+    color: theme.colors.success,
   },
   negativeValue: {
-    color: '#FF3B30',
+    color: theme.colors.error,
   },
   emptyStateText: {
     textAlign: 'center',
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     padding: 20,
   },
   bottomPadding: {
@@ -510,35 +483,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   goodStatusIndicator: {
-    backgroundColor: 'rgba(52, 199, 89, 0.1)',
+    backgroundColor: `${theme.colors.success}20`,
     borderWidth: 1,
-    borderColor: 'rgba(52, 199, 89, 0.3)',
+    borderColor: `${theme.colors.success}40`,
   },
   warningStatusIndicator: {
-    backgroundColor: 'rgba(255, 149, 0, 0.1)',
+    backgroundColor: `${theme.colors.warning}20`,
     borderWidth: 1,
-    borderColor: 'rgba(255, 149, 0, 0.3)',
+    borderColor: `${theme.colors.warning}40`,
   },
   badStatusIndicator: {
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    backgroundColor: `${theme.colors.error}20`,
     borderWidth: 1,
-    borderColor: 'rgba(255, 59, 48, 0.3)',
+    borderColor: `${theme.colors.error}40`,
   },
   statusText: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '500',
-    textAlign: 'center',
+    color: theme.colors.text,
   },
   viewMoreButton: {
-    alignItems: 'center',
-    paddingVertical: 8,
-    marginTop: 8,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surfaceVariant,
+    paddingVertical: 10,
     borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 8,
   },
   viewMoreText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: theme.colors.primary,
     fontWeight: '500',
   },
 });

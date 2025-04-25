@@ -18,8 +18,13 @@ import { formatMonthYear } from '@/utils/dateUtils';
 import { Plus, Search, Filter, Calendar, X, Wand2 } from 'lucide-react-native';
 import { applyRules } from '@/utils/ruleUtils';
 import { debounce } from 'lodash';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 
 export default function TransactionsScreen() {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const { state, dispatch } = useAppContext();
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -182,17 +187,17 @@ export default function TransactionsScreen() {
       {/* Search Bar (conditionally rendered) */}
       {showSearch && (
         <View style={styles.searchContainer}>
-          <Search size={18} color="#8E8E93" style={styles.searchIcon} />
+          <Search size={18} color={theme.colors.textSecondary} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search transactions..."
-            placeholderTextColor="#8E8E93"
+            placeholderTextColor={theme.colors.textSecondary}
             returnKeyType="search"
             autoFocus
             onChangeText={handleSearchChange}
           />
           <TouchableOpacity onPress={toggleSearch}>
-            <X size={18} color="#8E8E93" />
+            <X size={18} color={theme.colors.textSecondary} />
           </TouchableOpacity>
         </View>
       )}
@@ -204,7 +209,7 @@ export default function TransactionsScreen() {
         </TouchableOpacity>
         
         <View style={styles.monthContainer}>
-          <Calendar size={18} color="#007AFF" style={styles.calendarIcon} />
+          <Calendar size={18} color={theme.colors.primary} style={styles.calendarIcon} />
           <Text style={styles.monthText}>{formatMonthYear(selectedMonth)}</Text>
         </View>
         
@@ -274,7 +279,7 @@ export default function TransactionsScreen() {
               style={styles.iconButton}
               onPress={toggleSearch}
             >
-              <Search size={18} color="#007AFF" />
+              <Search size={18} color={theme.colors.primary} />
             </TouchableOpacity>
           )}
           
@@ -282,11 +287,11 @@ export default function TransactionsScreen() {
             style={styles.iconButton}
             onPress={handleApplyRules}
           >
-            <Wand2 size={18} color="#007AFF" />
+            <Wand2 size={18} color={theme.colors.primary} />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.iconButton}>
-            <Filter size={18} color="#007AFF" />
+            <Filter size={18} color={theme.colors.primary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -325,7 +330,7 @@ export default function TransactionsScreen() {
         style={styles.addButton}
         onPress={handleAddTransaction}
       >
-        <Plus size={24} color="white" />
+        <Plus size={24} color={theme.colors.card} />
       </TouchableOpacity>
       
       {/* Transaction Form Modal */}
@@ -344,19 +349,19 @@ export default function TransactionsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   searchIcon: {
     marginRight: 8,
@@ -365,22 +370,22 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 36,
     fontSize: 16,
-    color: '#000',
+    color: theme.colors.text,
   },
   monthSelector: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   monthNavigator: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#007AFF',
+    color: theme.colors.primary,
     paddingHorizontal: 12,
   },
   monthContainer: {
@@ -398,11 +403,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   filterChips: {
     flexDirection: 'row',
@@ -410,19 +415,19 @@ const styles = StyleSheet.create({
   filterChip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     borderRadius: 16,
     marginRight: 8,
   },
   activeFilterChip: {
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
   },
   filterChipText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
   },
   activeFilterChipText: {
-    color: 'white',
+    color: theme.colors.card,
   },
   filterActions: {
     flexDirection: 'row',
@@ -431,7 +436,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,
@@ -445,12 +450,12 @@ const styles = StyleSheet.create({
   emptyStateTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000',
+    color: theme.colors.text,
     marginBottom: 8,
   },
   emptyStateSubtitle: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     textAlign: 'center',
   },
   addButton: {
@@ -460,10 +465,10 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,

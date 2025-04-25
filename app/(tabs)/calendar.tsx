@@ -12,11 +12,16 @@ import { StatusBar } from 'expo-status-bar';
 import { useAppContext } from '@/context/AppContext';
 import CalendarEventItem from '@/components/calendar/CalendarEventItem';
 import { formatCurrency, formatDate, formatMonthYear } from '@/utils/dateUtils';
-import { Transaction, RecurringTransaction } from '@/types/transaction';
-import { Calendar as CalendarIcon, Plus, ChevronDown } from 'lucide-react-native';
+import { Transaction, RecurringTransaction, TransactionType } from '@/types/transaction';
+import { Calendar as CalendarIcon, Plus, ChevronDown, Search, Tag, ArrowLeft, BarChart3 } from 'lucide-react-native';
 import moment from 'moment';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 
 export default function CalendarScreen() {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const { state } = useAppContext();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -196,6 +201,32 @@ export default function CalendarScreen() {
     return days;
   };
 
+  const mockTransaction = {
+    id: '123',
+    accountId: 'acc123',
+    date: new Date(),
+    payee: 'Mock Payee',
+    payeeId: 'payee123',
+    amount: 100,
+    type: 'expense' as TransactionType,
+    categoryId: 'cat123',
+    description: 'Monthly Subscription',
+    isReconciled: false,
+    isCleared: false,
+    tags: ['subscription', 'monthly'],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isSplit: false,
+    splits: undefined,
+    recurrenceRule: {
+      frequency: 'monthly',
+      interval: 1,
+      dayOfMonth: 1,
+      endDate: null
+    },
+    isAutomatic: true
+  } as RecurringTransaction;
+
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
@@ -251,13 +282,13 @@ export default function CalendarScreen() {
       {/* Calendar Header */}
       <View style={styles.calendarHeader}>
         <View style={styles.dateSelector}>
-          <CalendarIcon size={18} color="#007AFF" style={styles.calendarIcon} />
+          <CalendarIcon size={18} color={theme.colors.primary} style={styles.calendarIcon} />
           
           <TouchableOpacity style={styles.dateSelectorButton}>
             <Text style={styles.selectedDateText}>
               {formatMonthYear(selectedDate)}
             </Text>
-            <ChevronDown size={16} color="#8E8E93" />
+            <ChevronDown size={16} color={theme.colors.textSecondary} />
           </TouchableOpacity>
         </View>
         
@@ -352,22 +383,22 @@ export default function CalendarScreen() {
       
       {/* Add Event Button */}
       <TouchableOpacity style={styles.addButton}>
-        <Plus size={24} color="white" />
+        <Plus size={24} color={theme.colors.text} />
       </TouchableOpacity>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
   },
   viewSelector: {
     flexDirection: 'row',
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
     padding: 8,
   },
   viewOption: {
@@ -377,22 +408,22 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   selectedViewOption: {
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
   },
   viewOptionText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
   },
   selectedViewOptionText: {
-    color: 'white',
+    color: theme.colors.card,
   },
   calendarHeader: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   dateSelector: {
     flexDirection: 'row',
@@ -419,22 +450,22 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 8,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
   },
   dateNavButtonText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: theme.colors.primary,
   },
   todayButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
   },
   todayButtonText: {
-    color: 'white',
+    color: theme.colors.card,
   },
   calendarStrip: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   calendarDaysContainer: {
     flexDirection: 'row',
@@ -450,11 +481,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   selectedCalendarDay: {
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
   },
   calendarDayName: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginBottom: 4,
   },
   calendarDayNumber: {
@@ -462,25 +493,25 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   selectedCalendarDayText: {
-    color: 'white',
+    color: theme.colors.card,
   },
   balanceContainer: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
     alignItems: 'center',
   },
   balanceLabel: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginBottom: 4,
   },
   balanceAmount: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#000',
+    color: theme.colors.text,
   },
   eventsContainer: {
     flex: 1,
@@ -495,12 +526,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 40,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: 12,
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     textAlign: 'center',
   },
   bottomPadding: {
@@ -513,10 +544,10 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,

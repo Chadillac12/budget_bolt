@@ -56,13 +56,13 @@ export default function ImportWizardTest() {
       // Step 2: Detect delimiter
       addLog('Detecting delimiter...');
       const delimiter = detectDelimiter(content);
-      addLog(`Detected delimiter: "${delimiter === ',' ? 'comma' : delimiter === ';' ? 'semicolon' : delimiter === '\t' ? 'tab' : delimiter}"`);
+      addLog(`Detected delimiter: "${delimiter}"`);
       
       // Step 3: Parse CSV
       addLog('Parsing CSV...');
       const { headers, rows } = parseCSV(content, delimiter);
       addLog(`Parsed ${headers.length} headers and ${rows.length} data rows`);
-      addLog(`Headers: ${headers.join(', ')}`);
+      addLog(`Headers: ${JSON.stringify(headers)}`);
       
       // Step 4: Auto-detect column mapping
       addLog('Auto-detecting column mappings...');

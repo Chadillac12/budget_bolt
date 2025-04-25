@@ -1,6 +1,10 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { LayoutAnimation, Platform, UIManager } from 'react-native';
+import { LayoutAnimation, Platform, UIManager, StyleSheet } from 'react-native';
+import { useTheme } from '@/context/ThemeContext';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 import {
   LayoutDashboard,
   CreditCard,
@@ -26,38 +30,42 @@ if (Platform.OS === 'android') {
   }
 }
 
-export default function TabLayout() {
+export default function TabsLayout() {
+  const appTheme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
+  const { isDark } = useTheme();
+
   // Configure layout animation
   const configureNextAnimation = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    LayoutAnimation.configureNext(
+      LayoutAnimation.create(
+        300,
+        LayoutAnimation.Types.easeInEaseOut,
+        LayoutAnimation.Properties.opacity
+      )
+    );
+  };
+
+  // Custom header styling using monospace font
+  const headerTitleStyle = {
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontWeight: '500' as const,
   };
 
   return (
     <Tabs
       screenOptions={{
-        tabBarStyle: {
-          backgroundColor: 'white',
-          borderTopColor: '#E5E5EA',
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
-        },
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: '#8E8E93',
-        tabBarLabelStyle: {
-          fontSize: 12,
-          marginTop: 0,
-        },
         headerStyle: {
-          backgroundColor: 'white',
-          borderBottomColor: '#E5E5EA',
-          borderBottomWidth: 1,
+          backgroundColor: appTheme.colors.surface,
         },
-        headerTitleStyle: {
-          fontSize: 18,
-          fontWeight: '600',
+        headerTintColor: appTheme.colors.text,
+        headerTitleStyle,
+        tabBarStyle: {
+          backgroundColor: appTheme.colors.surface,
+          borderTopColor: appTheme.colors.border,
         },
-        headerShadowVisible: false,
+        tabBarActiveTintColor: appTheme.colors.primary,
+        tabBarInactiveTintColor: appTheme.colors.textSecondary,
       }}
     >
       <Tabs.Screen
@@ -302,3 +310,7 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+const createStyles = (theme: Theme) => ({
+  // ... styles here
+});

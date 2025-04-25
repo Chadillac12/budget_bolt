@@ -12,6 +12,9 @@ import { useAppContext } from '@/context/AppContext';
 import { TransactionSplit } from '@/types/transaction';
 import { formatCurrency } from '@/utils/dateUtils';
 import { Plus, Trash2, DollarSign } from 'lucide-react-native';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 
 interface SplitTransactionProps {
   splits: TransactionSplit[];
@@ -25,13 +28,15 @@ interface SplitTransactionProps {
  * Component for managing split transactions
  * Allows adding, editing, and removing splits
  */
-export default function SplitTransaction({ 
-  splits, 
-  totalAmount, 
+export default function SplitTransaction({
+  splits,
+  totalAmount,
   currency = 'USD',
   onSplitsChange,
   readOnly = false
 }: SplitTransactionProps) {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const { state } = useAppContext();
   const [remainingAmount, setRemainingAmount] = useState(() => {
     const allocatedAmount = splits.reduce((sum, split) => sum + split.amount, 0);
@@ -153,7 +158,7 @@ export default function SplitTransaction({
                 <View 
                   style={[
                     styles.categoryIndicator, 
-                    { backgroundColor: category?.color || '#E5E5EA' }
+                    { backgroundColor: category?.color || theme.colors.border }
                   ]}
                 />
                 
@@ -162,7 +167,7 @@ export default function SplitTransaction({
                     style={styles.removeButton}
                     onPress={() => handleRemoveSplit(split.id)}
                   >
-                    <Trash2 size={16} color="#FF3B30" />
+                    <Trash2 size={16} color={theme.colors.error} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -200,7 +205,7 @@ export default function SplitTransaction({
                   </Text>
                 ) : (
                   <View style={styles.amountInputContainer}>
-                    <DollarSign size={16} color="#8E8E93" />
+                    <DollarSign size={16} color={theme.colors.textSecondary} />
                     <TextInput
                       style={styles.amountInput}
                       value={split.amount.toString()}
@@ -241,7 +246,7 @@ export default function SplitTransaction({
           onPress={handleAddSplit}
           disabled={remainingAmount <= 0}
         >
-          <Plus size={16} color="white" />
+          <Plus size={16} color={theme.colors.card} />
           <Text style={styles.addSplitButtonText}>Add Split</Text>
         </TouchableOpacity>
       )}
@@ -249,9 +254,9 @@ export default function SplitTransaction({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: 8,
     padding: 16,
     marginVertical: 8,
@@ -269,30 +274,30 @@ const styles = StyleSheet.create({
   totalAmount: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
+    color: theme.colors.primary,
   },
   remainingContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     padding: 8,
     borderRadius: 6,
     marginBottom: 12,
   },
   remainingLabel: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
   },
   remainingAmount: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FF9500',
+    color: theme.colors.warning,
   },
   splitsContainer: {
     maxHeight: 300,
   },
   splitItem: {
-    backgroundColor: '#F9F9F9',
+    backgroundColor: theme.colors.surface,
     borderRadius: 8,
     padding: 12,
     marginBottom: 8,
@@ -318,7 +323,7 @@ const styles = StyleSheet.create({
   fieldLabel: {
     width: 100,
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
   },
   fieldValue: {
     flex: 1,
@@ -326,19 +331,19 @@ const styles = StyleSheet.create({
   },
   categorySelector: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     padding: 8,
     borderRadius: 6,
   },
   categorySelectorText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: theme.colors.primary,
   },
   amountInputContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     padding: 8,
     borderRadius: 6,
   },
@@ -349,7 +354,7 @@ const styles = StyleSheet.create({
   },
   descriptionInput: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     padding: 8,
     borderRadius: 6,
     fontSize: 14,
@@ -358,7 +363,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
     padding: 12,
     borderRadius: 8,
     marginTop: 8,
@@ -367,7 +372,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#A2A2A2',
   },
   addSplitButtonText: {
-    color: 'white',
+    color: theme.colors.card,
     fontWeight: '600',
     marginLeft: 8,
   },

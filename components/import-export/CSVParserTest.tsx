@@ -79,23 +79,14 @@ export default function CSVParserTest() {
   const testInternalFile = async () => {
     try {
       setIsLoading(true);
-      const fileUri = FileSystem.documentDirectory + 'transactions(2).csv';
       
-      // Copy the test file to the document directory if it doesn't exist
-      const fileInfo = await FileSystem.getInfoAsync(fileUri);
-      if (!fileInfo.exists) {
-        addLog('Copying test file to document directory...');
-        await FileSystem.copyAsync({
-          from: '../../transactions(2).csv',
-          to: fileUri
-        });
-      }
-      
-      addLog(`Testing file: transactions(2).csv`);
+      // Use direct path to the file in the project root
+      const fileName = 'transactions(2).csv';
+      addLog(`Testing file: ${fileName}`);
       
       // Read file content
       addLog('Reading file content...');
-      const content = await readFileAsString(fileUri);
+      const content = await readFileAsString(fileName);
       addLog(`File content loaded: ${content.length} characters`);
       
       // Test delimiter detection

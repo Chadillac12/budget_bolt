@@ -3,6 +3,9 @@ import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { Payee } from '@/types/payee';
 import { useAppContext } from '@/context/AppContext';
 import { Edit, Trash2, MoreHorizontal, DollarSign, Clock } from 'lucide-react-native';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 
 interface PayeeItemProps {
   payee: Payee;
@@ -14,12 +17,14 @@ interface PayeeItemProps {
 /**
  * Component to display a single payee in the payee list
  */
-export default function PayeeItem({ 
-  payee, 
-  onEdit, 
+export default function PayeeItem({
+  payee,
+  onEdit,
   onDelete,
   onViewTransactions
 }: PayeeItemProps) {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const { state } = useAppContext();
   
   // Get categories for this payee
@@ -51,21 +56,21 @@ export default function PayeeItem({
             style={styles.actionButton}
             onPress={() => onViewTransactions(payee)}
           >
-            <DollarSign size={18} color="#007AFF" />
+            <DollarSign size={18} color={theme.colors.primary} />
           </TouchableOpacity>
           
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => onEdit(payee)}
           >
-            <Edit size={18} color="#007AFF" />
+            <Edit size={18} color={theme.colors.primary} />
           </TouchableOpacity>
           
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => onDelete(payee)}
           >
-            <Trash2 size={18} color="#FF3B30" />
+            <Trash2 size={18} color={theme.colors.error} />
           </TouchableOpacity>
         </View>
       </View>
@@ -78,7 +83,7 @@ export default function PayeeItem({
               key={category.id} 
               style={[
                 styles.categoryBadge,
-                { backgroundColor: category.color || '#E5E5EA' }
+                { backgroundColor: category.color || theme.colors.border }
               ]}
             >
               <Text style={styles.categoryText}>{category.name}</Text>
@@ -90,12 +95,12 @@ export default function PayeeItem({
       {/* Transaction info */}
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
-          <DollarSign size={14} color="#8E8E93" style={styles.statIcon} />
+          <DollarSign size={14} color={theme.colors.textSecondary} style={styles.statIcon} />
           <Text style={styles.statText}>{transactionCount} transactions</Text>
         </View>
         
         <View style={styles.statItem}>
-          <Clock size={14} color="#8E8E93" style={styles.statIcon} />
+          <Clock size={14} color={theme.colors.textSecondary} style={styles.statIcon} />
           <Text style={styles.statText}>Last: {formattedLastTransactionDate}</Text>
         </View>
       </View>
@@ -118,14 +123,14 @@ export default function PayeeItem({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: theme.colors.border,
   },
   inactiveContainer: {
     opacity: 0.7,
@@ -163,7 +168,7 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: 12,
-    color: 'white',
+    color: theme.colors.card,
     fontWeight: '500',
   },
   statsContainer: {
@@ -180,7 +185,7 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
   },
   aliasContainer: {
     flexDirection: 'row',
@@ -188,24 +193,24 @@ const styles = StyleSheet.create({
   },
   aliasLabel: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
   },
   aliasText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     fontStyle: 'italic',
   },
   inactiveBadge: {
     position: 'absolute',
     top: 8,
     right: 8,
-    backgroundColor: '#FF3B30',
+    backgroundColor: theme.colors.error,
     borderRadius: 4,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
   inactiveText: {
-    color: 'white',
+    color: theme.colors.card,
     fontSize: 10,
     fontWeight: '600',
   },

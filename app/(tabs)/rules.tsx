@@ -39,12 +39,17 @@ import {
 } from 'lucide-react-native';
 import { Stack } from 'expo-router';
 import { Transaction } from '@/types/transaction';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 
 /**
  * Rules Management Screen
  * Allows users to create, edit, delete, and reorder categorization rules
  */
 export default function RulesScreen() {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const { state, dispatch } = useAppContext();
   const [editingRule, setEditingRule] = useState<Rule | null>(null);
   const [isAddingRule, setIsAddingRule] = useState(false);
@@ -280,7 +285,7 @@ export default function RulesScreen() {
           <Switch
             value={item.isActive}
             onValueChange={() => handleToggleRuleActive(item)}
-            trackColor={{ false: '#E5E5EA', true: '#4CD964' }}
+            trackColor={{ false: theme.colors.border, true: '#4CD964' }}
           />
           
           <Text style={styles.ruleName}>{item.name}</Text>
@@ -291,7 +296,7 @@ export default function RulesScreen() {
               onPress={() => handleMoveRuleUp(index)}
               disabled={index === 0}
             >
-              <ChevronUp size={18} color={index === 0 ? '#C7C7CC' : '#007AFF'} />
+              <ChevronUp size={18} color={index === 0 ? '#C7C7CC' : theme.colors.primary} />
             </TouchableOpacity>
             
             <TouchableOpacity
@@ -299,28 +304,28 @@ export default function RulesScreen() {
               onPress={() => handleMoveRuleDown(index)}
               disabled={index === state.rules.length - 1}
             >
-              <ChevronDown size={18} color={index === state.rules.length - 1 ? '#C7C7CC' : '#007AFF'} />
+              <ChevronDown size={18} color={index === state.rules.length - 1 ? '#C7C7CC' : theme.colors.primary} />
             </TouchableOpacity>
             
             <TouchableOpacity
               style={styles.iconButton}
               onPress={() => handleDuplicateRule(item)}
             >
-              <Copy size={18} color="#007AFF" />
+              <Copy size={18} color={theme.colors.primary} />
             </TouchableOpacity>
             
             <TouchableOpacity
               style={styles.iconButton}
               onPress={() => handleEditRule(item)}
             >
-              <Edit size={18} color="#007AFF" />
+              <Edit size={18} color={theme.colors.primary} />
             </TouchableOpacity>
             
             <TouchableOpacity
               style={styles.iconButton}
               onPress={() => handleDeleteRule(item.id)}
             >
-              <Trash2 size={18} color="#FF3B30" />
+              <Trash2 size={18} color={theme.colors.error} />
             </TouchableOpacity>
           </View>
         </View>
@@ -529,7 +534,7 @@ export default function RulesScreen() {
               style={styles.addButton}
               onPress={handleAddRule}
             >
-              <Plus size={20} color="white" />
+              <Plus size={20} color={theme.colors.card} />
             </TouchableOpacity>
           ),
         }}
@@ -548,7 +553,7 @@ export default function RulesScreen() {
                 style={styles.iconButton}
                 onPress={handleCancelEdit}
               >
-                <X size={20} color="#FF3B30" />
+                <X size={20} color={theme.colors.error} />
               </TouchableOpacity>
               
               <TouchableOpacity
@@ -591,7 +596,7 @@ export default function RulesScreen() {
                 <Switch
                   value={editingRule.isActive}
                   onValueChange={(value) => setEditingRule({ ...editingRule, isActive: value })}
-                  trackColor={{ false: '#E5E5EA', true: '#4CD964' }}
+                  trackColor={{ false: theme.colors.border, true: '#4CD964' }}
                 />
               </View>
             </View>
@@ -628,7 +633,7 @@ export default function RulesScreen() {
                       style={styles.iconButton}
                       onPress={() => handleDeleteCondition(index)}
                     >
-                      <Trash2 size={18} color="#FF3B30" />
+                      <Trash2 size={18} color={theme.colors.error} />
                     </TouchableOpacity>
                   </View>
                   
@@ -720,7 +725,7 @@ export default function RulesScreen() {
                               const updatedCondition = { ...condition as TextRuleCondition, caseSensitive: value };
                               handleUpdateCondition(index, updatedCondition);
                             }}
-                            trackColor={{ false: '#E5E5EA', true: '#007AFF' }}
+                            trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
                           />
                         </View>
                       </View>
@@ -735,7 +740,7 @@ export default function RulesScreen() {
                               const updatedCondition = { ...condition as TextRuleCondition, isNegated: value };
                               handleUpdateCondition(index, updatedCondition);
                             }}
-                            trackColor={{ false: '#E5E5EA', true: '#FF9500' }}
+                            trackColor={{ false: theme.colors.border, true: theme.colors.warning }}
                           />
                         </View>
                       </View>
@@ -811,7 +816,7 @@ export default function RulesScreen() {
                               const updatedCondition = { ...condition as AmountRuleCondition, isNegated: value };
                               handleUpdateCondition(index, updatedCondition);
                             }}
-                            trackColor={{ false: '#E5E5EA', true: '#FF9500' }}
+                            trackColor={{ false: theme.colors.border, true: theme.colors.warning }}
                           />
                         </View>
                       </View>
@@ -890,7 +895,7 @@ export default function RulesScreen() {
                               const updatedCondition = { ...condition as MetadataRuleCondition, isNegated: value };
                               handleUpdateCondition(index, updatedCondition);
                             }}
-                            trackColor={{ false: '#E5E5EA', true: '#FF9500' }}
+                            trackColor={{ false: theme.colors.border, true: theme.colors.warning }}
                           />
                         </View>
                       </View>
@@ -905,7 +910,7 @@ export default function RulesScreen() {
                   style={[styles.addButton, styles.textConditionButton]}
                   onPress={() => handleAddCondition(RuleConditionType.TEXT)}
                 >
-                  <Plus size={16} color="white" />
+                  <Plus size={16} color={theme.colors.card} />
                   <Text style={styles.addButtonText}>Text</Text>
                 </TouchableOpacity>
                 
@@ -913,7 +918,7 @@ export default function RulesScreen() {
                   style={[styles.addButton, styles.amountConditionButton]}
                   onPress={() => handleAddCondition(RuleConditionType.AMOUNT)}
                 >
-                  <Plus size={16} color="white" />
+                  <Plus size={16} color={theme.colors.card} />
                   <Text style={styles.addButtonText}>Amount</Text>
                 </TouchableOpacity>
                 
@@ -921,7 +926,7 @@ export default function RulesScreen() {
                   style={[styles.addButton, styles.metadataConditionButton]}
                   onPress={() => handleAddCondition(RuleConditionType.METADATA)}
                 >
-                  <Plus size={16} color="white" />
+                  <Plus size={16} color={theme.colors.card} />
                   <Text style={styles.addButtonText}>Metadata</Text>
                 </TouchableOpacity>
               </View>
@@ -952,7 +957,7 @@ export default function RulesScreen() {
                         {
                           backgroundColor: state.categories.find(
                             cat => cat.id === editingRule.action.categoryId
-                          )?.color || '#E5E5EA'
+                          )?.color || theme.colors.border
                         }
                       ]}
                     />
@@ -990,7 +995,7 @@ export default function RulesScreen() {
         <>
           {state.rules.length === 0 ? (
             <View style={styles.emptyState}>
-              <AlertCircle size={48} color="#8E8E93" />
+              <AlertCircle size={48} color={theme.colors.textSecondary} />
               <Text style={styles.emptyStateTitle}>No Rules Yet</Text>
               <Text style={styles.emptyStateText}>
                 Create rules to automatically categorize your transactions based on payee, amount, and more.
@@ -999,7 +1004,7 @@ export default function RulesScreen() {
                 style={styles.emptyStateButton}
                 onPress={handleAddRule}
               >
-                <Plus size={16} color="white" />
+                <Plus size={16} color={theme.colors.card} />
                 <Text style={styles.emptyStateButtonText}>Create First Rule</Text>
               </TouchableOpacity>
             </View>
@@ -1017,13 +1022,13 @@ export default function RulesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
   },
   addButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -1035,11 +1040,11 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   ruleItem: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: 10,
     marginBottom: 16,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -1065,13 +1070,13 @@ const styles = StyleSheet.create({
   },
   ruleSummary: {
     borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
+    borderTopColor: theme.colors.border,
     paddingTop: 12,
   },
   ruleConditionsLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginBottom: 4,
   },
   ruleCondition: {
@@ -1082,7 +1087,7 @@ const styles = StyleSheet.create({
   ruleActionLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginTop: 8,
     marginBottom: 4,
   },
@@ -1104,12 +1109,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
     paddingLeft: 8,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
   },
   ruleStats: {
     fontSize: 12,
     marginTop: 8,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     fontStyle: 'italic',
   },
   emptyState: {
@@ -1127,26 +1132,26 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 16,
     textAlign: 'center',
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginBottom: 24,
   },
   emptyStateButton: {
     flexDirection: 'row',
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
   },
   emptyStateButtonText: {
-    color: 'white',
+    color: theme.colors.card,
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
   },
   editorContainer: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
   },
   editorHeader: {
     flexDirection: 'row',
@@ -1154,7 +1159,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   editorTitle: {
     fontSize: 18,
@@ -1172,12 +1177,12 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: theme.colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -1198,7 +1203,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   conditionItem: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
@@ -1212,7 +1217,7 @@ const styles = StyleSheet.create({
   conditionType: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#007AFF',
+    color: theme.colors.primary,
   },
   conditionEditor: {
     marginTop: 8,
@@ -1223,16 +1228,16 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   textConditionButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
   },
   amountConditionButton: {
-    backgroundColor: '#5856D6',
+    backgroundColor: theme.colors.secondary,
   },
   metadataConditionButton: {
-    backgroundColor: '#FF9500',
+    backgroundColor: theme.colors.warning,
   },
   addButtonText: {
-    color: 'white',
+    color: theme.colors.card,
     fontWeight: '600',
     marginLeft: 4,
   },
@@ -1243,18 +1248,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: theme.colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
   },
   categorySelectorText: {
     fontSize: 16,
-    color: '#007AFF',
+    color: theme.colors.primary,
   },
   segmentedControl: {
     flexDirection: 'row',
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     borderRadius: 8,
     padding: 2,
   },
@@ -1265,8 +1270,8 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   segmentButtonActive: {
-    backgroundColor: 'white',
-    shadowColor: '#000',
+    backgroundColor: theme.colors.card,
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 1,
@@ -1274,21 +1279,21 @@ const styles = StyleSheet.create({
   },
   segmentButtonText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
   },
   segmentButtonTextActive: {
-    color: '#007AFF',
+    color: theme.colors.primary,
     fontWeight: '600',
   },
   selector: {
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: theme.colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
   },
   selectorText: {
     fontSize: 16,
-    color: '#007AFF',
+    color: theme.colors.primary,
   },
 });

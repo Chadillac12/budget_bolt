@@ -4,6 +4,9 @@ import { useAppContext } from '@/context/AppContext';
 import { Payee } from '@/types/payee';
 import { calculatePayeeAnalytics } from '@/utils/payeeUtils';
 import { ArrowUpRight, ArrowDownRight, Calendar, DollarSign, BarChart3 } from 'lucide-react-native';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useThemedStyles } from '@/hooks/useThemedStyles';
+import { Theme } from '@/context/theme';
 
 interface PayeeAnalyticsProps {
   payee: Payee;
@@ -12,7 +15,11 @@ interface PayeeAnalyticsProps {
 /**
  * Component to display analytics for a specific payee
  */
-export default function PayeeAnalytics({ payee }: PayeeAnalyticsProps) {
+export default function PayeeAnalytics({
+  payee
+}: PayeeAnalyticsProps) {
+  const theme = useAppTheme();
+  const styles = useThemedStyles(createStyles);
   const { state } = useAppContext();
   
   // Calculate analytics data
@@ -90,7 +97,7 @@ export default function PayeeAnalytics({ payee }: PayeeAnalyticsProps) {
       <View style={styles.summaryContainer}>
         <View style={styles.summaryCard}>
           <View style={styles.summaryIconContainer}>
-            <ArrowUpRight size={20} color="#FF3B30" />
+            <ArrowUpRight size={20} color={theme.colors.error} />
           </View>
           <Text style={styles.summaryLabel}>Total Spent</Text>
           <Text style={styles.summaryValue}>{formatCurrency(analytics.totalSpent || 0)}</Text>
@@ -98,7 +105,7 @@ export default function PayeeAnalytics({ payee }: PayeeAnalyticsProps) {
         
         <View style={styles.summaryCard}>
           <View style={styles.summaryIconContainer}>
-            <ArrowDownRight size={20} color="#34C759" />
+            <ArrowDownRight size={20} color={theme.colors.success} />
           </View>
           <Text style={styles.summaryLabel}>Total Income</Text>
           <Text style={styles.summaryValue}>{formatCurrency(analytics.totalIncome || 0)}</Text>
@@ -106,7 +113,7 @@ export default function PayeeAnalytics({ payee }: PayeeAnalyticsProps) {
         
         <View style={styles.summaryCard}>
           <View style={styles.summaryIconContainer}>
-            <Calendar size={20} color="#007AFF" />
+            <Calendar size={20} color={theme.colors.primary} />
           </View>
           <Text style={styles.summaryLabel}>Transactions</Text>
           <Text style={styles.summaryValue}>{analytics.transactionCount}</Text>
@@ -233,21 +240,21 @@ export default function PayeeAnalytics({ payee }: PayeeAnalyticsProps) {
                 
                 <View style={styles.breakdownDetails}>
                   <View style={styles.breakdownDetail}>
-                    <ArrowUpRight size={14} color="#FF3B30" style={styles.breakdownIcon} />
+                    <ArrowUpRight size={14} color={theme.colors.error} style={styles.breakdownIcon} />
                     <Text style={styles.breakdownValue}>
                       {formatCurrency(analytics.monthlyData?.[month]?.expenses || 0)}
                     </Text>
                   </View>
                   
                   <View style={styles.breakdownDetail}>
-                    <ArrowDownRight size={14} color="#34C759" style={styles.breakdownIcon} />
+                    <ArrowDownRight size={14} color={theme.colors.success} style={styles.breakdownIcon} />
                     <Text style={styles.breakdownValue}>
                       {formatCurrency(analytics.monthlyData?.[month]?.income || 0)}
                     </Text>
                   </View>
                   
                   <View style={styles.breakdownDetail}>
-                    <Calendar size={14} color="#007AFF" style={styles.breakdownIcon} />
+                    <Calendar size={14} color={theme.colors.primary} style={styles.breakdownIcon} />
                     <Text style={styles.breakdownValue}>
                       {analytics.monthlyData?.[month]?.count || 0} tx
                     </Text>
@@ -262,15 +269,15 @@ export default function PayeeAnalytics({ payee }: PayeeAnalyticsProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
   },
   header: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   title: {
     fontSize: 20,
@@ -282,7 +289,7 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     borderRadius: 12,
     padding: 12,
     marginHorizontal: 4,
@@ -292,14 +299,14 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
   },
   summaryLabel: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginBottom: 4,
   },
   summaryValue: {
@@ -309,7 +316,7 @@ const styles = StyleSheet.create({
   section: {
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
+    borderTopColor: theme.colors.border,
   },
   sectionTitle: {
     fontSize: 18,
@@ -325,7 +332,7 @@ const styles = StyleSheet.create({
   },
   averageLabel: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginBottom: 4,
   },
   averageValue: {
@@ -354,13 +361,13 @@ const styles = StyleSheet.create({
   },
   expenseBar: {
     width: '100%',
-    backgroundColor: '#FF3B30',
+    backgroundColor: theme.colors.error,
     borderTopLeftRadius: 4,
     borderTopRightRadius: 4,
   },
   incomeBar: {
     width: '100%',
-    backgroundColor: '#34C759',
+    backgroundColor: theme.colors.success,
     borderTopLeftRadius: 4,
     borderTopRightRadius: 4,
   },
@@ -371,7 +378,7 @@ const styles = StyleSheet.create({
     right: 0,
     textAlign: 'center',
     fontSize: 10,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
   },
   chartLegend: {
     flexDirection: 'row',
@@ -390,17 +397,17 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   expenseLegend: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: theme.colors.error,
   },
   incomeLegend: {
-    backgroundColor: '#34C759',
+    backgroundColor: theme.colors.success,
   },
   legendText: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
   },
   historyContainer: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     borderRadius: 12,
     padding: 16,
   },
@@ -409,7 +416,7 @@ const styles = StyleSheet.create({
   },
   historyLabel: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginBottom: 4,
   },
   historyValue: {
@@ -419,17 +426,17 @@ const styles = StyleSheet.create({
   historyAmount: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#007AFF',
+    color: theme.colors.primary,
   },
   noDataText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     fontStyle: 'italic',
     textAlign: 'center',
     padding: 16,
   },
   breakdownContainer: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     borderRadius: 12,
     padding: 8,
   },
@@ -440,7 +447,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: theme.colors.border,
   },
   breakdownMonth: {
     fontSize: 14,
